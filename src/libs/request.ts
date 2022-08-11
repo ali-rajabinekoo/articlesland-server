@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Axios } from 'axios';
+import axios, { Axios } from 'axios';
 import { mellipayamak } from './config';
 import { MellipayamakResponse } from './schemes';
 
@@ -11,16 +11,17 @@ export class Request {
   }
 
   makeNewConnection(): void {
-    this.connection = new Axios();
+    this.connection = axios.create();
   }
 
   async sendSms(to: string, args: string[]): Promise<MellipayamakResponse> {
-    return this.connection.post(mellipayamak.url, {
+    const response = await this.connection.post(mellipayamak.url, {
       username: mellipayamak.username,
       password: mellipayamak.password,
       text: args.join(';'),
       to,
       bodyId: mellipayamak.authBodyId,
     });
+    return response.data as MellipayamakResponse;
   }
 }
