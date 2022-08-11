@@ -21,7 +21,7 @@ describe('Request service', () => {
     const result: MellipayamakResponse = await service.sendSms('9357877418', [
       '12345',
     ]);
-    expect(result.Value.length).toBeGreaterThan(15);
+    expect(result.Value.length).toBeGreaterThanOrEqual(15);
     expect(result.RetStatus).toEqual(1);
     expect(result.StrRetStatus.toUpperCase()).toEqual('OK');
   }, 60000);
