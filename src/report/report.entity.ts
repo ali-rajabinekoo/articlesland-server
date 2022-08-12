@@ -1,6 +1,3 @@
-import { Article } from 'src/article/article.entity';
-import { Comment } from 'src/comment/comment.entity';
-import { User } from 'src/user/user.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -8,6 +5,9 @@ import {
   JoinColumn,
   Relation,
 } from 'typeorm';
+import { User } from '../user/user.entity';
+import { Article } from '../article/article.entity';
+import { Comment } from '../comment/comment.entity';
 
 @Entity('report')
 export class Report {

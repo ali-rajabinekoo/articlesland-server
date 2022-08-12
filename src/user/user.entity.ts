@@ -10,11 +10,11 @@ import {
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
-import { Follow } from 'src/follow/follow.entity';
-import { Report } from 'src/report/report.entity';
-import { Like } from 'src/like/like.entity';
-import { Bookmark } from 'src/bookmark/bookmark.entity';
-import { Article } from 'src/article/article.entity';
+import { Article } from '../article/article.entity';
+import { Follow } from '../follow/follow.entity';
+import { Report } from '../report/report.entity';
+import { Like } from '../like/like.entity';
+import { Bookmark } from '../bookmark/bookmark.entity';
 
 @Entity('user')
 export class User {
@@ -29,15 +29,15 @@ export class User {
   password: string;
 
   @Column({ unique: true })
-  phonenumber: string;
+  phoneNumber: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, default: null })
   email: string;
 
-  @Column()
+  @Column({ default: null })
   avatar: string;
 
-  @Column()
+  @Column({ default: null })
   bio: string;
 
   @CreateDateColumn()

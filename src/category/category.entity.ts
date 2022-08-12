@@ -1,4 +1,3 @@
-import { Article } from 'src/article/article.entity';
 import {
   Entity,
   Column,
@@ -6,6 +5,7 @@ import {
   OneToMany,
   Relation,
 } from 'typeorm';
+import { Article } from '../article/article.entity';
 
 @Entity('category')
 export class Category {

@@ -1,9 +1,3 @@
-import { Bookmark } from 'src/bookmark/bookmark.entity';
-import { Category } from 'src/category/category.entity';
-import { Comment } from 'src/comment/comment.entity';
-import { Like } from 'src/like/like.entity';
-import { Report } from 'src/report/report.entity';
-import { User } from 'src/user/user.entity';
 import {
   Entity,
   Column,
@@ -12,10 +6,15 @@ import {
   UpdateDateColumn,
   ManyToOne,
   Relation,
-  OneToOne,
   JoinColumn,
   OneToMany,
 } from 'typeorm';
+import { User } from '../user/user.entity';
+import { Category } from '../category/category.entity';
+import { Report } from '../report/report.entity';
+import { Like } from '../like/like.entity';
+import { Bookmark } from '../bookmark/bookmark.entity';
+import { Comment } from '../comment/comment.entity';
 
 @Entity('article')
 export class Article {

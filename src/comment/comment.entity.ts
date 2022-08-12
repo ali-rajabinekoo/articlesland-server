@@ -1,6 +1,3 @@
-import { Article } from 'src/article/article.entity';
-import { Report } from 'src/report/report.entity';
-import { User } from 'src/user/user.entity';
 import {
   Entity,
   Column,
@@ -11,6 +8,9 @@ import {
   Relation,
   OneToMany,
 } from 'typeorm';
+import { User } from '../user/user.entity';
+import { Article } from '../article/article.entity';
+import { Report } from '../report/report.entity';
 
 @Entity('comment')
 export class Comment {

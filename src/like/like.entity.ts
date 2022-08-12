@@ -1,5 +1,3 @@
-import { Article } from 'src/article/article.entity';
-import { User } from 'src/user/user.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,6 +5,8 @@ import {
   JoinColumn,
   Relation,
 } from 'typeorm';
+import { User } from '../user/user.entity';
+import { Article } from '../article/article.entity';
 
 @Entity('like')
 export class Like {

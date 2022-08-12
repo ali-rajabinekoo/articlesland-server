@@ -1,4 +1,3 @@
-import { User } from 'src/user/user.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -6,6 +5,7 @@ import {
   JoinColumn,
   Relation,
 } from 'typeorm';
+import { User } from '../user/user.entity';
 
 @Entity('follow')
 export class Follow {

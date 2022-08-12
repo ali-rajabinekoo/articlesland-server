@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
-import { Utils } from './libs/utils';
-import { Request } from './libs/request';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { database } from './libs/config';
 import { UserModule } from './user/user.module';
@@ -21,9 +19,8 @@ import { Report } from './report/report.entity';
 import { FollowModule } from './follow/follow.module';
 import { Follow } from './follow/follow.entity';
 
-@Module({
+export const AppModuleMetadata = {
   imports: [
-    AuthModule,
     TypeOrmModule.forRoot({
       type: 'mariadb',
       host: database.host,
@@ -43,6 +40,7 @@ import { Follow } from './follow/follow.entity';
       ],
       synchronize: true,
     }),
+    AuthModule,
     UserModule,
     ArticleModule,
     CategoryModule,
@@ -52,6 +50,7 @@ import { Follow } from './follow/follow.entity';
     ReportModule,
     FollowModule,
   ],
-  providers: [Utils, Request],
-})
+};
+
+@Module(AppModuleMetadata)
 export class AppModule {}
