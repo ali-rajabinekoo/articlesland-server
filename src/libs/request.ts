@@ -1,10 +1,8 @@
-import { Injectable } from '@nestjs/common';
 import axios, { Axios } from 'axios';
 import { mellipayamak } from './config';
-import { MellipayamakResponse } from './schemes';
+import { MellipayamakResponse } from './schemas';
 
-@Injectable()
-export class Request {
+class Request {
   private connection: Axios;
   constructor() {
     this.makeNewConnection();
@@ -25,3 +23,4 @@ export class Request {
     return response.data as MellipayamakResponse;
   }
 }
+export default new Request();
