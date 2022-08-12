@@ -39,15 +39,17 @@ describe('AuthController', () => {
     controller = module.get<AuthController>(AuthController);
     repository = module.get<Repository<User>>(getRepositoryToken(User));
 
-    newUser.username = 'test';
-    newUser.password = 'Test1234@1';
-    newUser.repeatPassword = 'Test1234@1';
-    newUser.phoneNumber = '+989212210982';
-
     const user: User = await repository.findOneBy({
       username: newUser.username,
     });
     if (!!user) await repository.remove(user);
+  });
+
+  beforeEach(() => {
+    newUser.username = 'test';
+    newUser.password = 'Test1234@1';
+    newUser.repeatPassword = 'Test1234@1';
+    newUser.phoneNumber = '+989212210982';
   });
 
   it('should not add new user when password and repeatPassword are not same', async () => {
@@ -74,34 +76,34 @@ describe('AuthController', () => {
         message: validationMessages.invalid.password,
         error: 'Bad Request',
       });
-    }
-    
+    };
+
     try {
       body.password = '123';
       await controller.register(body);
     } catch (e) {
-      catchFunc(e)
+      catchFunc(e);
     }
 
     try {
       body.password = '123456test';
       await controller.register(body);
     } catch (e) {
-      catchFunc(e)
+      catchFunc(e);
     }
 
     try {
       body.password = '123456test!@';
       await controller.register(body);
     } catch (e) {
-      catchFunc(e)
+      catchFunc(e);
     }
 
     try {
       body.password = '123456TEST!@';
       await controller.register(body);
     } catch (e) {
-      catchFunc(e)
+      catchFunc(e);
     }
   });
 
@@ -154,4 +156,26 @@ describe('AuthController', () => {
       });
     }
   });
+
+  //  --------------------- login ---------------------
+
+  // it('should user login with phoneNumber', async () => {
+  //   const result: AuthLoginDto = await controller.register(newUser);
+  //   expect(result).toEqual(
+  //     expect.objectContaining({
+  //       token: expect.any(String),
+  //       user: expect.objectContaining({
+  //         username: newUser.username,
+  //         password: expect.any(String),
+  //         email: null,
+  //         bio: null,
+  //         avatar: null,
+  //         created_at: expect.any(Date),
+  //         updated_at: expect.any(Date),
+  //         id: expect.any(Number),
+  //         phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
+  //       }),
+  //     }),
+  //   );
+  // });
 });
