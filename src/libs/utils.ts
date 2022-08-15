@@ -37,10 +37,11 @@ class Utils {
     }
     await this.keyvClient.set(code, String(user.id), 1000 * 90);
     await this.keyvClient.set(uniqueKey, String(user.id), 1000 * 90);
+    await this.keyvClient.set(user.phoneNumber, user.id, 1000 * 90);
     return { code, uniqueKey };
   }
 
-  async geUserIdByLoginCode(code: string, key: string): Promise<string> {
+  async geUserIdByVerifyCode(code: string, key: string): Promise<string> {
     const userId: string = await this.keyvClient.get(code);
     if (!userId) return null;
     const userId2: string = await this.keyvClient.get(key);
@@ -49,6 +50,17 @@ class Utils {
     await this.keyvClient.delete(code);
     await this.keyvClient.delete(key);
     return userId;
+  }
+
+  async removeVerifyOpportunity(phoneNumber: string): Promise<void> {
+    await this.keyvClient.delete(phoneNumber);
+  }
+
+  async checkUserInVerificationOpportunity(
+    phoneNumber: string,
+  ): Promise<boolean> {
+    const exists = await this.keyvClient.get(phoneNumber);
+    return Boolean(exists);
   }
 
   async clearKeyValueTable(): Promise<void> {

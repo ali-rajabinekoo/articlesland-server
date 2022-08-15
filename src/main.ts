@@ -10,4 +10,7 @@ async function bootstrap() {
   await app.listen(8080);
 }
 
-bootstrap();
+bootstrap().catch((e) => {
+  console.log(e);
+  process.exit(1);
+});

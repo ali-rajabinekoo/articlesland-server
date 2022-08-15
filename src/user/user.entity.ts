@@ -40,6 +40,10 @@ export class User {
   @Column({ default: null })
   bio: string;
 
+  @Column({ default: false })
+  @Exclude({ toPlainOnly: true })
+  activated: boolean;
+
   @CreateDateColumn()
   created_at: Date;
 

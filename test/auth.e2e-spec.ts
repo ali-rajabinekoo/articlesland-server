@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import {
   LoginByCodeDto,
   RegisterNewUserDto,
-  SendLoginCodeDto,
+  SendLoginCodeDto, SignupVerificationDto,
 } from '../src/user/user.dto';
 import { AppModuleTestMetadata } from '../src/app.module.test';
 import utils from '../src/libs/utils';
@@ -19,7 +19,9 @@ describe('Auth (e2e)', () => {
   let repository: Repository<User>;
   const newUser: RegisterNewUserDto = new RegisterNewUserDto();
   const sendLoginCodeInfo: SendLoginCodeDto = new SendLoginCodeDto();
+  const signupVerificationBody = new SignupVerificationDto();
   const loginByCodeInfo: LoginByCodeDto = new LoginByCodeDto();
+  let key: string = '';
 
   const removeTestUser = async () => {
     const user: User = await repository.findOneBy({
@@ -39,6 +41,7 @@ describe('Auth (e2e)', () => {
     repository = moduleFixture.get<Repository<User>>(getRepositoryToken(User));
 
     await removeTestUser();
+    await utils.clearKeyValueTable();
   });
 
   beforeEach(() => {
@@ -51,6 +54,7 @@ describe('Auth (e2e)', () => {
     sendLoginCodeInfo.phoneNumber = phone;
 
     loginByCodeInfo.code = '123456789';
+    signupVerificationBody.code = '123456789';
   });
 
   afterAll(async () => {
@@ -206,19 +210,11 @@ describe('Auth (e2e)', () => {
     expect(result.statusCode).toBe(201);
     expect(result.body).toEqual(
       expect.objectContaining({
-        token: expect.any(String),
-        user: expect.objectContaining({
-          username: newUser.username,
-          email: null,
-          bio: null,
-          avatar: null,
-          created_at: expect.any(String),
-          updated_at: expect.any(String),
-          id: expect.any(Number),
-          phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
-        }),
+        key: expect.any(String),
       }),
     );
+
+    key = result.body.key;
 
     // db assertion
     const user: User = await repository.findOneBy({
@@ -232,9 +228,75 @@ describe('Auth (e2e)', () => {
       avatar: null,
       created_at: expect.any(Date),
       updated_at: expect.any(Date),
+      activated: false,
       id: expect.any(Number),
       phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
     });
+  });
+
+  it(`${route}/register (POST - 406) | NotAcceptable until verification code does not expire`, async () => {
+    const result: request.Response = await request(app.getHttpServer())
+      .post(`${route}/register`)
+      .send(newUser);
+
+    expect(result.statusCode).toBe(406);
+    expect(result.body).toMatchObject({
+      statusCode: 406,
+      message: exceptionMessages.notAcceptable.code,
+      error: 'Not Acceptable',
+    });
+  });
+
+  it(`${route}/register/verify (POST - 403) | Bad key`, async () => {
+    signupVerificationBody.key = 'badkey';
+    const result: request.Response = await request(app.getHttpServer())
+      .post(`${route}/register/verify`)
+      .send(signupVerificationBody);
+
+    expect(result.statusCode).toBe(403);
+    expect(result.body).toMatchObject({
+      statusCode: 403,
+      message: exceptionMessages.invalid.code,
+      error: 'Forbidden',
+    });
+  });
+
+  it(`${route}/register/verify (POST - 403) | Bad code`, async () => {
+    signupVerificationBody.code = 'badcode';
+    const result: request.Response = await request(app.getHttpServer())
+      .post(`${route}/register/verify`)
+      .send(signupVerificationBody);
+
+    expect(result.statusCode).toBe(403);
+    expect(result.body).toMatchObject({
+      statusCode: 403,
+      message: exceptionMessages.invalid.code,
+      error: 'Forbidden',
+    });
+  });
+
+  it(`${route}/register/verify (POST - 200)`, async () => {
+    signupVerificationBody.key = key;
+    const result: request.Response = await request(app.getHttpServer())
+      .post(`${route}/register/verify`)
+      .send(signupVerificationBody);
+
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toEqual(
+      expect.objectContaining({
+        token: expect.any(String),
+        user: expect.objectContaining({
+          username: newUser.username,
+          email: null,
+          bio: null,
+          avatar: null,
+          created_at: expect.any(String),
+          updated_at: expect.any(String),
+          id: expect.any(Number),
+          phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
+        }),
+      }),
+    );
   });
 
   it(`${route}/register (POST - 409) | Already exist (username)`, async () => {
@@ -267,41 +329,41 @@ describe('Auth (e2e)', () => {
     });
   });
 
-  //  --------------------- login ---------------------
-
-  it(`${route}/login/mobile/send (POST - 200)`, async () => {
-    const result: request.Response = await request(app.getHttpServer())
-      .post(`${route}/login/mobile/send`)
-      .send(sendLoginCodeInfo);
-
-    expect(result.statusCode).toBe(200);
-    expect(result.body).toMatchObject({
-      key: expect.any(String),
-    });
-
-    loginByCodeInfo.key = result.body.key;
-  });
-
-  it(`${route}/login/mobile/check (POST - 200)`, async () => {
-    const result: request.Response = await request(app.getHttpServer())
-      .post(`${route}/login/mobile/check`)
-      .send(loginByCodeInfo);
-
-    expect(result.statusCode).toBe(200);
-    expect(result.body).toEqual(
-      expect.objectContaining({
-        token: expect.any(String),
-        user: expect.objectContaining({
-          username: newUser.username,
-          email: null,
-          bio: null,
-          avatar: null,
-          created_at: expect.any(String),
-          updated_at: expect.any(String),
-          id: expect.any(Number),
-          phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
-        }),
-      }),
-    );
-  });
+  // //  --------------------- login ---------------------
+  //
+  // it(`${route}/login/mobile/send (POST - 200)`, async () => {
+  //   const result: request.Response = await request(app.getHttpServer())
+  //     .post(`${route}/login/mobile/send`)
+  //     .send(sendLoginCodeInfo);
+  //
+  //   expect(result.statusCode).toBe(200);
+  //   expect(result.body).toMatchObject({
+  //     key: expect.any(String),
+  //   });
+  //
+  //   loginByCodeInfo.key = result.body.key;
+  // });
+  //
+  // it(`${route}/login/mobile/check (POST - 200)`, async () => {
+  //   const result: request.Response = await request(app.getHttpServer())
+  //     .post(`${route}/login/mobile/check`)
+  //     .send(loginByCodeInfo);
+  //
+  //   expect(result.statusCode).toBe(200);
+  //   expect(result.body).toEqual(
+  //     expect.objectContaining({
+  //       token: expect.any(String),
+  //       user: expect.objectContaining({
+  //         username: newUser.username,
+  //         email: null,
+  //         bio: null,
+  //         avatar: null,
+  //         created_at: expect.any(String),
+  //         updated_at: expect.any(String),
+  //         id: expect.any(Number),
+  //         phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
+  //       }),
+  //     }),
+  //   );
+  // });
 });

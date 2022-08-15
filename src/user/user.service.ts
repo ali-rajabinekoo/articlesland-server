@@ -50,6 +50,11 @@ export class UserService {
     return this.usersRepository.findOneBy({ id });
   }
 
+  async verifyUser(user: User): Promise<void> {
+    user.activated = true;
+    await this.usersRepository.save(user);
+  }
+
   async addNewUser(body: RegisterNewUserDto): Promise<User> {
     body.password = await bcrypt.hash(body.password, 10);
     const user = await this.usersRepository.create(body);

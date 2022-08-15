@@ -60,3 +60,11 @@ export class LoginByCodeDto {
   @IsNotEmpty()
   key: string;
 }
+
+export class SignupVerificationDto {
+  @IsNotEmpty({ message: validationMessages.empty.code })
+  code: string;
+
+  @IsNotEmpty()
+  key: string;
+}
