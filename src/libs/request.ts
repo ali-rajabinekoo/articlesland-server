@@ -2,7 +2,7 @@ import axios, { Axios } from 'axios';
 import { mellipayamak } from './config';
 import { MellipayamakResponse } from './schemas';
 
-class Request {
+export class Request {
   private connection: Axios;
   private isTest = process.env.NODE_ENV === 'test';
 
