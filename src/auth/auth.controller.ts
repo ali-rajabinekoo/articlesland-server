@@ -5,7 +5,7 @@ import {
   ConflictException,
   Controller,
   ForbiddenException,
-  HttpCode,
+  HttpCode, NotAcceptableException,
   NotFoundException,
   Post,
   UseInterceptors,
@@ -16,6 +16,7 @@ import {
   LoginByCredentialDto,
   RegisterNewUserDto,
   SendLoginCodeDto,
+  SignupVerificationDto,
   UserUniqueInfoDto,
 } from '../user/user.dto';
 import { UserService } from '../user/user.service';
@@ -30,11 +31,14 @@ export class AuthController {
   constructor(
     private userService: UserService,
     private authService: AuthService,
-  ) {}
+  ) {
+  }
 
   @HttpCode(201)
   @Post('register')
-  async register(@Body() newUser: RegisterNewUserDto): Promise<AuthLoginDto> {
+  async register(
+    @Body() newUser: RegisterNewUserDto,
+  ): Promise<{ key: string }> {
     if (!utils.isValidPassword(newUser.password)) {
       throw new BadRequestException(validationMessages.invalid.password);
     }
@@ -42,13 +46,45 @@ export class AuthController {
       throw new BadRequestException(validationMessages.invalid.repeatPassword);
     }
     newUser.phoneNumber = utils.normalizePhoneNumber(newUser.phoneNumber);
+    const codeExists: boolean = await utils.checkUserInVerificationOpportunity(
+      newUser.phoneNumber,
+    );
+    if (codeExists) {
+      throw new NotAcceptableException(exceptionMessages.notAcceptable.code);
+    }
     const duplicatedUser: User = await this.userService.findUserByUniqueInfo(
       newUser as UserUniqueInfoDto,
     );
-    if (!!duplicatedUser) {
+    let user: User;
+    if (!duplicatedUser) {
+      user = await this.userService.addNewUser(newUser);
+    } else if (!duplicatedUser.activated) {
+      user = duplicatedUser;
+    } else {
       throw new ConflictException(exceptionMessages.exist.user);
     }
-    const user: User = await this.userService.addNewUser(newUser);
+    const key: string = await this.authService.sendCode(user);
+    return { key };
+  }
+
+  @HttpCode(200)
+  @Post('register/verify')
+  async registerVerify(
+    @Body() userInfo: SignupVerificationDto,
+  ): Promise<AuthLoginDto> {
+    const userId: string = await utils.geUserIdByVerifyCode(
+      userInfo.code,
+      userInfo.key,
+    );
+    if (!userId) {
+      throw new ForbiddenException(exceptionMessages.invalid.code);
+    }
+    const user: User = await this.userService.findUserById(Number(userId));
+    if (!user || !!user.activated) {
+      throw new NotFoundException(exceptionMessages.notFound.user);
+    }
+    await utils.removeVerifyOpportunity(user.phoneNumber);
+    await this.userService.verifyUser(user);
     return {
       user,
       token: await this.authService.login(user),
@@ -59,7 +95,7 @@ export class AuthController {
   @Post('login')
   async login(@Body() userInfo: LoginByCredentialDto): Promise<AuthLoginDto> {
     const user: User = await this.userService.findUserByCredential(userInfo);
-    if (!user) {
+    if (!user || !user.activated) {
       throw new NotFoundException(exceptionMessages.notFound.user);
     }
     return {
@@ -73,11 +109,17 @@ export class AuthController {
   async loginByCode(
     @Body() userInfo: SendLoginCodeDto,
   ): Promise<{ key: string }> {
+    const codeExists: boolean = await utils.checkUserInVerificationOpportunity(
+      utils.normalizePhoneNumber(userInfo.phoneNumber),
+    );
+    if (codeExists) {
+      throw new NotAcceptableException(exceptionMessages.notAcceptable.code);
+    }
     const user: User = await this.userService.findUserByPhoneNumber(userInfo);
-    if (!user) {
+    if (!user || !user.activated) {
       throw new NotFoundException(exceptionMessages.notFound.user);
     }
-    const key: string = await this.authService.sendLoginCode(user);
+    const key: string = await this.authService.sendCode(user);
     return { key };
   }
 
@@ -86,17 +128,18 @@ export class AuthController {
   async loginByCodeChecker(
     @Body() userInfo: LoginByCodeDto,
   ): Promise<AuthLoginDto> {
-    const userId: string = await utils.geUserIdByLoginCode(
+    const userId: string = await utils.geUserIdByVerifyCode(
       userInfo.code,
       userInfo.key,
     );
     if (!userId) {
-      throw new ForbiddenException(exceptionMessages.forbidden.user);
+      throw new ForbiddenException(exceptionMessages.invalid.code);
     }
     const user: User = await this.userService.findUserById(Number(userId));
-    if (!user) {
+    if (!user || !user.activated) {
       throw new NotFoundException(exceptionMessages.notFound.user);
     }
+    await utils.removeVerifyOpportunity(user.phoneNumber);
     return {
       user,
       token: await this.authService.login(user),

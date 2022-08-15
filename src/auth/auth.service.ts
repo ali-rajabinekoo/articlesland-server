@@ -14,7 +14,7 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  async sendLoginCode(user: User): Promise<string> {
+  async sendCode(user: User): Promise<string> {
     const { code, uniqueKey } = await utils.generateLoginCode(user);
     const { Value }: MellipayamakResponse = await request.sendSms(
       user.phoneNumber,
