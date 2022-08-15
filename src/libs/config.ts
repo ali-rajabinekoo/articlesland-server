@@ -12,6 +12,8 @@ export const database = {
   port: 3306,
   username: 'root',
   password: 'test',
+  keyv: 'mysql://root:test@localhost:3306/articlesland',
+  keyvTest: 'mysql://root:test@localhost:3306/articleslandTest',
 };
 
 export const jwtConfig = {

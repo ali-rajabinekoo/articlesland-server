@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
-import { RegisterNewUserDto } from '../src/user/user.dto';
+import {
+  LoginByCodeDto,
+  RegisterNewUserDto,
+  SendLoginCodeDto,
+} from '../src/user/user.dto';
 import { AppModuleTestMetadata } from '../src/app.module.test';
 import utils from '../src/libs/utils';
 import { exceptionMessages, validationMessages } from '../src/libs/messages';
@@ -14,15 +18,17 @@ describe('Auth (e2e)', () => {
   const route = '/auth';
   let repository: Repository<User>;
   const newUser: RegisterNewUserDto = new RegisterNewUserDto();
+  const sendLoginCodeInfo: SendLoginCodeDto = new SendLoginCodeDto();
+  const loginByCodeInfo: LoginByCodeDto = new LoginByCodeDto();
+
+  const removeTestUser = async () => {
+    const user: User = await repository.findOneBy({
+      username: newUser.username,
+    });
+    if (!!user) await repository.remove(user);
+  };
 
   beforeAll(async () => {
-    newUser.username = 'test-2e2';
-    newUser.password = 'Test1234@12e2';
-    newUser.repeatPassword = 'Test1234@12e2';
-    newUser.phoneNumber = '+989212210221';
-  });
-
-  beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule(
       AppModuleTestMetadata,
     ).compile();
@@ -31,13 +37,25 @@ describe('Auth (e2e)', () => {
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
     repository = moduleFixture.get<Repository<User>>(getRepositoryToken(User));
+
+    await removeTestUser();
+  });
+
+  beforeEach(() => {
+    const phone = '+989212210982';
+    newUser.username = 'test-2e2';
+    newUser.password = 'Test1234@12e2';
+    newUser.repeatPassword = 'Test1234@12e2';
+    newUser.phoneNumber = phone;
+
+    sendLoginCodeInfo.phoneNumber = phone;
+
+    loginByCodeInfo.code = '123456789';
   });
 
   afterAll(async () => {
-    const user: User = await repository.findOneBy({
-      username: newUser.username,
-    });
-    if (!!user) await repository.remove(user);
+    await removeTestUser();
+    await utils.clearKeyValueTable();
   });
 
   it(`${route}/register (POST - 400) | Empty field (username)`, async () => {
@@ -104,7 +122,7 @@ describe('Auth (e2e)', () => {
 
   it(`${route}/register (POST - 400) | Invalid password`, async () => {
     const body: RegisterNewUserDto = { ...newUser };
-    
+
     body.password = '123456';
     let result: request.Response = await request(app.getHttpServer())
       .post(`${route}/register`)
@@ -247,5 +265,43 @@ describe('Auth (e2e)', () => {
       message: exceptionMessages.exist.user,
       error: 'Conflict',
     });
+  });
+
+  //  --------------------- login ---------------------
+
+  it(`${route}/login/mobile/send (POST - 200)`, async () => {
+    const result: request.Response = await request(app.getHttpServer())
+      .post(`${route}/login/mobile/send`)
+      .send(sendLoginCodeInfo);
+
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toMatchObject({
+      key: expect.any(String),
+    });
+
+    loginByCodeInfo.key = result.body.key;
+  });
+
+  it(`${route}/login/mobile/check (POST - 200)`, async () => {
+    const result: request.Response = await request(app.getHttpServer())
+      .post(`${route}/login/mobile/check`)
+      .send(loginByCodeInfo);
+
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toEqual(
+      expect.objectContaining({
+        token: expect.any(String),
+        user: expect.objectContaining({
+          username: newUser.username,
+          email: null,
+          bio: null,
+          avatar: null,
+          created_at: expect.any(String),
+          updated_at: expect.any(String),
+          id: expect.any(Number),
+          phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
+        }),
+      }),
+    );
   });
 });
