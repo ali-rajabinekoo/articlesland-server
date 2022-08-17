@@ -20,3 +20,6 @@ export const jwtConfig = {
   secret: '953ef985e05a7adcd0a3d5d4f141828059667aa7',
   expireAt: '5400s',
 };
+
+// 2 minutes
+export const codeExpire = 120000;

@@ -16,8 +16,7 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {
-  }
+  ) {}
 
   async findUserByUniqueInfo(body: UserUniqueInfoDto): Promise<User> {
     const user: User = await this.usersRepository.findOneBy({
@@ -34,7 +33,7 @@ export class UserService {
       username: info.username,
     });
     if (!user) return null;
-    if (await bcrypt.compare(user.password, info.password)) {
+    if (await bcrypt.compare(info.password, user.password)) {
       return user;
     }
     return null;
@@ -56,7 +55,6 @@ export class UserService {
   }
 
   async addNewUser(body: RegisterNewUserDto): Promise<User> {
-    body.password = await bcrypt.hash(body.password, 10);
     const user = await this.usersRepository.create(body);
     await this.usersRepository.save(user);
     return user;

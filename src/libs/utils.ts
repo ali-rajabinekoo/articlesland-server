@@ -1,7 +1,7 @@
 import { User } from '../user/user.entity';
 import * as Keyv from 'keyv';
 import { v4 as uuidV4 } from 'uuid';
-import { database } from './config';
+import { codeExpire, database } from './config';
 
 class Utils {
   private passRegex = new RegExp(
@@ -22,22 +22,26 @@ class Utils {
     return this.passRegex.test(password);
   }
 
+  makeCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
   async generateLoginCode(
     user: User,
   ): Promise<{ code: string; uniqueKey: string }> {
     const isTest = process.env.NODE_ENV === 'test';
-    let code: string = Math.floor(100000 + Math.random() * 900000).toString();
+    let code: string = this.makeCode();
     if (isTest) code = '123456789';
     let uniqueKey: string = uuidV4();
     while ((await this.keyvClient.get(code)) && !isTest) {
-      code = Math.floor(100000 + Math.random() * 900000).toString();
+      code = this.makeCode();
     }
     while (await this.keyvClient.get(uniqueKey)) {
       uniqueKey = uuidV4();
     }
-    await this.keyvClient.set(code, String(user.id), 1000 * 90);
-    await this.keyvClient.set(uniqueKey, String(user.id), 1000 * 90);
-    await this.keyvClient.set(user.phoneNumber, user.id, 1000 * 90);
+    await this.keyvClient.set(code, String(user.id), codeExpire);
+    await this.keyvClient.set(uniqueKey, String(user.id), codeExpire);
+    await this.keyvClient.set(user.phoneNumber, user.id, codeExpire);
     return { code, uniqueKey };
   }
 

@@ -4,7 +4,8 @@ import * as request from 'supertest';
 import {
   LoginByCodeDto,
   RegisterNewUserDto,
-  SendLoginCodeDto, SignupVerificationDto,
+  SendLoginCodeDto,
+  SignupVerificationDto,
 } from '../src/user/user.dto';
 import { AppModuleTestMetadata } from '../src/app.module.test';
 import utils from '../src/libs/utils';
@@ -17,11 +18,12 @@ describe('Auth (e2e)', () => {
   let app: INestApplication;
   const route = '/auth';
   let repository: Repository<User>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const newUser: RegisterNewUserDto = new RegisterNewUserDto();
   const sendLoginCodeInfo: SendLoginCodeDto = new SendLoginCodeDto();
   const signupVerificationBody = new SignupVerificationDto();
   const loginByCodeInfo: LoginByCodeDto = new LoginByCodeDto();
-  let key: string = '';
+  let key = '';
 
   const removeTestUser = async () => {
     const user: User = await repository.findOneBy({
@@ -328,42 +330,4 @@ describe('Auth (e2e)', () => {
       error: 'Conflict',
     });
   });
-
-  // //  --------------------- login ---------------------
-  //
-  // it(`${route}/login/mobile/send (POST - 200)`, async () => {
-  //   const result: request.Response = await request(app.getHttpServer())
-  //     .post(`${route}/login/mobile/send`)
-  //     .send(sendLoginCodeInfo);
-  //
-  //   expect(result.statusCode).toBe(200);
-  //   expect(result.body).toMatchObject({
-  //     key: expect.any(String),
-  //   });
-  //
-  //   loginByCodeInfo.key = result.body.key;
-  // });
-  //
-  // it(`${route}/login/mobile/check (POST - 200)`, async () => {
-  //   const result: request.Response = await request(app.getHttpServer())
-  //     .post(`${route}/login/mobile/check`)
-  //     .send(loginByCodeInfo);
-  //
-  //   expect(result.statusCode).toBe(200);
-  //   expect(result.body).toEqual(
-  //     expect.objectContaining({
-  //       token: expect.any(String),
-  //       user: expect.objectContaining({
-  //         username: newUser.username,
-  //         email: null,
-  //         bio: null,
-  //         avatar: null,
-  //         created_at: expect.any(String),
-  //         updated_at: expect.any(String),
-  //         id: expect.any(Number),
-  //         phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
-  //       }),
-  //     }),
-  //   );
-  // });
 });
