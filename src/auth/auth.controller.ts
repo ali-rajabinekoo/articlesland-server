@@ -5,7 +5,8 @@ import {
   ConflictException,
   Controller,
   ForbiddenException,
-  HttpCode, NotAcceptableException,
+  HttpCode,
+  NotAcceptableException,
   NotFoundException,
   Post,
   UseInterceptors,
@@ -31,8 +32,7 @@ export class AuthController {
   constructor(
     private userService: UserService,
     private authService: AuthService,
-  ) {
-  }
+  ) {}
 
   @HttpCode(201)
   @Post('register')
