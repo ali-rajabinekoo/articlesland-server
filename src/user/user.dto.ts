@@ -1,6 +1,7 @@
 import { IsMobilePhone, IsNotEmpty } from 'class-validator';
 import { Exclude } from 'class-transformer';
 import { validationMessages } from '../libs/messages';
+import { User } from './user.entity';
 
 export class UserJwtDto {
   id: number;
@@ -67,4 +68,8 @@ export class SignupVerificationDto {
 
   @IsNotEmpty()
   key: string;
+}
+
+export class RequestFormat {
+  user: User;
 }
