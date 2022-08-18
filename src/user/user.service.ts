@@ -10,13 +10,15 @@ import {
 import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import utils from '../libs/utils';
+import { Article } from '../article/article.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {}
+  ) {
+  }
 
   async findUserByUniqueInfo(body: UserUniqueInfoDto): Promise<User> {
     const user: User = await this.usersRepository.findOneBy({
@@ -46,7 +48,17 @@ export class UserService {
   }
 
   async findUserById(id: number): Promise<User> {
-    return this.usersRepository.findOneBy({ id });
+    return this.usersRepository.findOne({
+      where: { id },
+      relations: [
+        'articles',
+        'followers',
+        'following',
+        'reports',
+        'likes',
+        'bookmarks',
+      ],
+    });
   }
 
   async verifyUser(user: User): Promise<void> {

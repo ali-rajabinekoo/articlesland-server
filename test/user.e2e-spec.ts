@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { AppModule } from '../src/app.module';
 import { AppModuleTestMetadata } from '../src/app.module.test';
 import { Repository } from 'typeorm';
 import { User } from '../src/user/user.entity';
@@ -8,7 +7,6 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import utils from '../src/libs/utils';
 import { LoginByCredentialDto, RegisterNewUserDto } from '../src/user/user.dto';
 import * as request from 'supertest';
-import { validationMessages } from '../src/libs/messages';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -83,7 +81,7 @@ describe('AppController (e2e)', () => {
   it(`${route}/info (GET - 200)`, async () => {
     const result: request.Response = await request(app.getHttpServer())
       .get(`${route}/info`)
-      .set('authorization', `bearer ${token}`)
+      .set('Authorization', `bearer ${token}`)
       .send();
 
     expect(result.statusCode).toBe(200);
