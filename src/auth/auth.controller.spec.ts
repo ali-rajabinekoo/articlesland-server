@@ -8,11 +8,10 @@ import { UserModule } from '../user/user.module';
 import { JwtStrategy } from './jwt.strategy';
 import { TypeOrmTestingModule } from '../app.module.test';
 import {
-  LoginByCodeDto,
+  VerificationCodeDto,
   LoginByCredentialDto,
   RegisterNewUserDto,
   SendLoginCodeDto,
-  SignupVerificationDto,
 } from '../user/user.dto';
 import { User } from '../user/user.entity';
 import utils from '../libs/utils';
@@ -32,8 +31,8 @@ describe('AuthController', () => {
   let controller: AuthController;
   let repository: Repository<User>;
   let key: string;
-  const signupVerificationBody = new SignupVerificationDto();
-  const loginByCodeBody = new LoginByCodeDto();
+  const signupVerificationBody = new VerificationCodeDto();
+  const loginByCodeBody = new VerificationCodeDto();
   const newUser: RegisterNewUserDto = new RegisterNewUserDto();
 
   beforeAll(async () => {
@@ -77,8 +76,8 @@ describe('AuthController', () => {
     newUser.repeatPassword = 'Test1234@1';
     newUser.phoneNumber = '+989212210982';
 
-    signupVerificationBody.code = '123456789';
-    loginByCodeBody.code = '123456789';
+    signupVerificationBody.code = '111111';
+    loginByCodeBody.code = '111111';
   });
 
   //  --------------------- signup ---------------------

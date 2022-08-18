@@ -31,7 +31,7 @@ class Utils {
   ): Promise<{ code: string; uniqueKey: string }> {
     const isTest = process.env.NODE_ENV === 'test';
     let code: string = this.makeCode();
-    if (isTest) code = '123456789';
+    if (isTest) code = '111111';
     let uniqueKey: string = uuidV4();
     while ((await this.keyvClient.get(code)) && !isTest) {
       code = this.makeCode();

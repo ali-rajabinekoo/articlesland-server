@@ -2,10 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import {
-  LoginByCodeDto,
   RegisterNewUserDto,
   SendLoginCodeDto,
-  SignupVerificationDto,
+  VerificationCodeDto,
 } from '../src/user/user.dto';
 import { AppModuleTestMetadata } from '../src/app.module.test';
 import utils from '../src/libs/utils';
@@ -21,8 +20,8 @@ describe('Auth (e2e)', () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const newUser: RegisterNewUserDto = new RegisterNewUserDto();
   const sendLoginCodeInfo: SendLoginCodeDto = new SendLoginCodeDto();
-  const signupVerificationBody = new SignupVerificationDto();
-  const loginByCodeInfo: LoginByCodeDto = new LoginByCodeDto();
+  const signupVerificationBody = new VerificationCodeDto();
+  const loginByCodeInfo: VerificationCodeDto = new VerificationCodeDto();
   let key = '';
 
   const removeTestUser = async () => {
@@ -55,8 +54,8 @@ describe('Auth (e2e)', () => {
 
     sendLoginCodeInfo.phoneNumber = phone;
 
-    loginByCodeInfo.code = '123456789';
-    signupVerificationBody.code = '123456789';
+    loginByCodeInfo.code = '111111';
+    signupVerificationBody.code = '111111';
   });
 
   afterAll(async () => {
@@ -250,7 +249,7 @@ describe('Auth (e2e)', () => {
   });
 
   it(`${route}/register/verify (POST - 403) | Bad key`, async () => {
-    signupVerificationBody.key = 'badkey';
+    signupVerificationBody.key = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
     const result: request.Response = await request(app.getHttpServer())
       .post(`${route}/register/verify`)
       .send(signupVerificationBody);
@@ -264,7 +263,7 @@ describe('Auth (e2e)', () => {
   });
 
   it(`${route}/register/verify (POST - 403) | Bad code`, async () => {
-    signupVerificationBody.code = 'badcode';
+    signupVerificationBody.code = '111111';
     const result: request.Response = await request(app.getHttpServer())
       .post(`${route}/register/verify`)
       .send(signupVerificationBody);
@@ -328,6 +327,143 @@ describe('Auth (e2e)', () => {
       statusCode: 409,
       message: exceptionMessages.exist.user,
       error: 'Conflict',
+    });
+  });
+
+  // --------------------- login -----------------------
+
+  it(`${route}/login/mobile/send (POST - 400) | Empty phoneNumber`, async () => {
+    const result: request.Response = await request(app.getHttpServer())
+      .post(`${route}/login/mobile/send`)
+      .send(new SendLoginCodeDto());
+
+    expect(result.statusCode).toBe(400);
+    expect(result.body).toMatchObject({
+      statusCode: 400,
+      message: expect.arrayContaining([validationMessages.invalid.phoneNumber]),
+      error: 'Bad Request',
+    });
+
+    const body: SendLoginCodeDto = new SendLoginCodeDto();
+    body.phoneNumber = '0909090';
+    const result2: request.Response = await request(app.getHttpServer())
+      .post(`${route}/login/mobile/send`)
+      .send(body);
+
+    expect(result2.statusCode).toBe(400);
+    expect(result2.body).toMatchObject({
+      statusCode: 400,
+      message: expect.arrayContaining([validationMessages.invalid.phoneNumber]),
+      error: 'Bad Request',
+    });
+  });
+
+  it(`${route}/login/mobile/send (POST - 404) | User not found`, async () => {
+    const body: SendLoginCodeDto = new SendLoginCodeDto();
+    body.phoneNumber = '09111111111';
+
+    const result: request.Response = await request(app.getHttpServer())
+      .post(`${route}/login/mobile/send`)
+      .send(body);
+
+    expect(result.statusCode).toBe(404);
+    expect(result.body).toMatchObject({
+      statusCode: 404,
+      message: exceptionMessages.notFound.user,
+      error: 'Not Found',
+    });
+  });
+
+  it(`${route}/login/mobile/send (POST - 200)`, async () => {
+    const result: request.Response = await request(app.getHttpServer())
+      .post(`${route}/login/mobile/send`)
+      .send(sendLoginCodeInfo);
+
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toMatchObject({
+      key: expect.any(String),
+    });
+    expect(result.body.key.length).toEqual(36);
+    loginByCodeInfo.key = result.body.key;
+  });
+
+  it(`${route}/login/mobile/send (POST - 406) | Wait until code expiration time`, async () => {
+    const result: request.Response = await request(app.getHttpServer())
+      .post(`${route}/login/mobile/send`)
+      .send(sendLoginCodeInfo);
+
+    expect(result.statusCode).toBe(406);
+    expect(result.body).toMatchObject({
+      statusCode: 406,
+      message: exceptionMessages.notAcceptable.code,
+      error: 'Not Acceptable',
+    });
+  });
+
+  it(`${route}/login/mobile/check (POST - 403) | Invalid code or key`, async () => {
+    const body: VerificationCodeDto = new VerificationCodeDto();
+    body.key = loginByCodeInfo.key;
+    body.code = '111112';
+
+    const result: request.Response = await request(app.getHttpServer())
+      .post(`${route}/login/mobile/check`)
+      .send(body);
+
+    expect(result.statusCode).toBe(403);
+    expect(result.body).toMatchObject({
+      statusCode: 403,
+      message: exceptionMessages.invalid.code,
+      error: 'Forbidden',
+    });
+
+    body.key = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
+    body.code = loginByCodeInfo.code;
+
+    const result2: request.Response = await request(app.getHttpServer())
+      .post(`${route}/login/mobile/check`)
+      .send(body);
+
+    expect(result2.statusCode).toBe(403);
+    expect(result2.body).toMatchObject({
+      statusCode: 403,
+      message: exceptionMessages.invalid.code,
+      error: 'Forbidden',
+    });
+  });
+
+  it(`${route}/login/mobile/check (POST - 200)`, async () => {
+    const result: request.Response = await request(app.getHttpServer())
+      .post(`${route}/login/mobile/check`)
+      .send(loginByCodeInfo);
+
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toEqual(
+      expect.objectContaining({
+        token: expect.any(String),
+        user: expect.objectContaining({
+          username: newUser.username,
+          email: null,
+          bio: null,
+          avatar: null,
+          created_at: expect.any(String),
+          updated_at: expect.any(String),
+          id: expect.any(Number),
+          phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
+        }),
+      }),
+    );
+  });
+
+  it(`${route}/login/mobile/check (POST - 403) | Invalid code or key`, async () => {
+    const result: request.Response = await request(app.getHttpServer())
+      .post(`${route}/login/mobile/check`)
+      .send(loginByCodeInfo);
+
+    expect(result.statusCode).toBe(403);
+    expect(result.body).toMatchObject({
+      statusCode: 403,
+      message: exceptionMessages.invalid.code,
+      error: 'Forbidden',
     });
   });
 });

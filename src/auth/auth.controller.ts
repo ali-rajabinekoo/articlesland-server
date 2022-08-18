@@ -13,19 +13,29 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
-  LoginByCodeDto,
+  VerificationCodeDto,
   LoginByCredentialDto,
   RegisterNewUserDto,
   SendLoginCodeDto,
-  SignupVerificationDto,
   UserUniqueInfoDto,
 } from '../user/user.dto';
 import { UserService } from '../user/user.service';
 import { User } from '../user/user.entity';
 import { exceptionMessages, validationMessages } from '../libs/messages';
 import utils from '../libs/utils';
-import { AuthLoginDto } from './auth.dto';
+import { AuthLoginDto, KeyResponseDto } from './auth.dto';
+import {
+  ApiBadRequestResponse,
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNotAcceptableResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('auth')
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('auth')
 export class AuthController {
@@ -34,11 +44,23 @@ export class AuthController {
     private authService: AuthService,
   ) {}
 
-  @HttpCode(201)
   @Post('register')
-  async register(
-    @Body() newUser: RegisterNewUserDto,
-  ): Promise<{ key: string }> {
+  @HttpCode(201)
+  @ApiCreatedResponse({
+    description: 'The user has been successfully registered.',
+    type: KeyResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: [
+      'Empty inputs.',
+      'Invalid password.',
+      'Invalid phoneNumber.',
+      'The password and its repetition are not the same.',
+    ].join(' | '),
+  })
+  @ApiNotAcceptableResponse({ description: 'Wait until code expiration time.' })
+  @ApiConflictResponse({ description: 'User already exists.' })
+  async register(@Body() newUser: RegisterNewUserDto): Promise<KeyResponseDto> {
     if (!utils.isValidPassword(newUser.password)) {
       throw new BadRequestException(validationMessages.invalid.password);
     }
@@ -67,10 +89,23 @@ export class AuthController {
     return { key };
   }
 
-  @HttpCode(200)
   @Post('register/verify')
+  @HttpCode(200)
+  @ApiOkResponse({
+    description: 'The user has been successfully verified.',
+    type: AuthLoginDto,
+  })
+  @ApiBadRequestResponse({
+    description: [
+      'Empty inputs.',
+      'Invalid code length.',
+      'Invalid key length.',
+    ].join(' | '),
+  })
+  @ApiForbiddenResponse({ description: 'Invalid code or key.' })
+  @ApiNotFoundResponse({ description: 'User not found.' })
   async registerVerify(
-    @Body() userInfo: SignupVerificationDto,
+    @Body() userInfo: VerificationCodeDto,
   ): Promise<AuthLoginDto> {
     const userId: string = await utils.geUserIdByVerifyCode(
       userInfo.code,
@@ -86,29 +121,44 @@ export class AuthController {
     await utils.removeVerifyOpportunity(user.phoneNumber);
     await this.userService.verifyUser(user);
     return {
-      user,
+      user: await this.userService.findUserById(user.id),
       token: await this.authService.login(user),
     };
   }
 
-  @HttpCode(200)
   @Post('login')
+  @HttpCode(200)
+  @ApiOkResponse({
+    description: 'The user has been successfully logged in.',
+    type: AuthLoginDto,
+  })
+  @ApiBadRequestResponse({ description: 'Empty inputs.' })
+  @ApiNotFoundResponse({ description: 'User not found.' })
   async login(@Body() userInfo: LoginByCredentialDto): Promise<AuthLoginDto> {
     const user: User = await this.userService.findUserByCredential(userInfo);
     if (!user || !user.activated) {
       throw new NotFoundException(exceptionMessages.notFound.user);
     }
     return {
-      user,
+      user: await this.userService.findUserById(user.id),
       token: await this.authService.login(user),
     };
   }
 
-  @HttpCode(200)
   @Post('login/mobile/send')
+  @HttpCode(200)
+  @ApiOkResponse({
+    description: 'The login verification code has been successfully sent.',
+    type: KeyResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: ['Empty inputs.', 'Invalid phoneNumber.'].join(' | '),
+  })
+  @ApiNotAcceptableResponse({ description: 'Wait until code expiration time.' })
+  @ApiNotFoundResponse({ description: 'User not found.' })
   async loginByCode(
     @Body() userInfo: SendLoginCodeDto,
-  ): Promise<{ key: string }> {
+  ): Promise<KeyResponseDto> {
     const codeExists: boolean = await utils.checkUserInVerificationOpportunity(
       utils.normalizePhoneNumber(userInfo.phoneNumber),
     );
@@ -123,10 +173,23 @@ export class AuthController {
     return { key };
   }
 
-  @HttpCode(200)
   @Post('login/mobile/check')
+  @HttpCode(200)
+  @ApiOkResponse({
+    description: 'The user has been successfully logged in.',
+    type: AuthLoginDto,
+  })
+  @ApiBadRequestResponse({
+    description: [
+      'Empty inputs.',
+      'Invalid code length.',
+      'Invalid key length.',
+    ].join(' | '),
+  })
+  @ApiForbiddenResponse({ description: 'Invalid code or key.' })
+  // @ApiNotFoundResponse({ description: 'User not found.' })
   async loginByCodeChecker(
-    @Body() userInfo: LoginByCodeDto,
+    @Body() userInfo: VerificationCodeDto,
   ): Promise<AuthLoginDto> {
     const userId: string = await utils.geUserIdByVerifyCode(
       userInfo.code,
@@ -141,7 +204,7 @@ export class AuthController {
     }
     await utils.removeVerifyOpportunity(user.phoneNumber);
     return {
-      user,
+      user: await this.userService.findUserById(user.id),
       token: await this.authService.login(user),
     };
   }
