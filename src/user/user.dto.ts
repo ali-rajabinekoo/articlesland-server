@@ -1,4 +1,11 @@
-import { IsMobilePhone, IsNotEmpty, Length } from 'class-validator';
+import {
+  IsMobilePhone,
+  IsNotEmpty,
+  Length,
+  MaxLength,
+  MinLength,
+  Matches,
+} from 'class-validator';
 import { Exclude } from 'class-transformer';
 import { validationMessages } from '../libs/messages';
 import { User } from './user.entity';
@@ -18,6 +25,9 @@ export class UserUniqueInfoDto {
 export class RegisterNewUserDto {
   @ApiProperty({ default: 'articlesLandUser', description: 'Username' })
   @IsNotEmpty({ message: validationMessages.empty.username })
+  @MinLength(4, { message: validationMessages.length.usernameShort })
+  @MaxLength(20, { message: validationMessages.length.usernameLong })
+  @Matches(/^[a-zA-Z]*$/g, { message: validationMessages.invalid.username })
   username: string;
 
   @ApiProperty({
@@ -46,6 +56,9 @@ export class RegisterNewUserDto {
   })
   @Exclude({ toPlainOnly: true })
   @IsNotEmpty({ message: validationMessages.empty.password })
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/g, {
+    message: validationMessages.invalid.password,
+  })
   password: string;
 
   @ApiProperty({ default: '123!@#AAAaaa', description: 'Repeat password' })

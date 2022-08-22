@@ -19,7 +19,7 @@ describe('AppController (e2e)', () => {
   const newUser: RegisterNewUserDto = new RegisterNewUserDto();
 
   const setNewUser = () => {
-    newUser.username = 'test-user';
+    newUser.username = 'testuser';
     newUser.password = 'Test1234@1';
     newUser.repeatPassword = 'Test1234@1';
     newUser.phoneNumber = utils.normalizePhoneNumber('+98357877418');

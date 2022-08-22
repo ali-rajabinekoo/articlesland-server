@@ -4,9 +4,6 @@ import { v4 as uuidV4 } from 'uuid';
 import { codeExpire, database } from './config';
 
 class Utils {
-  private passRegex = new RegExp(
-    '^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})',
-  );
   private keyvClient = new Keyv(
     process.env.NODE_ENV === 'test' ? database.keyvTest : database.keyv,
   );
@@ -16,10 +13,6 @@ class Utils {
     newMobile = newMobile.replace(/^98/g, '');
     newMobile = newMobile.replace(/^09/g, '9');
     return newMobile;
-  }
-
-  isValidPassword(password: string): boolean {
-    return this.passRegex.test(password);
   }
 
   makeCode() {

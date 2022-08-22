@@ -56,14 +56,14 @@ export class AuthController {
       'Invalid password.',
       'Invalid phoneNumber.',
       'The password and its repetition are not the same.',
+      'Username should contains english letters',
+      'Username should be lower then equal 20 english letters',
+      'Username should be greater then equal 4 english letters',
     ].join(' | '),
   })
   @ApiNotAcceptableResponse({ description: 'Wait until code expiration time.' })
   @ApiConflictResponse({ description: 'User already exists.' })
   async register(@Body() newUser: RegisterNewUserDto): Promise<KeyResponseDto> {
-    if (!utils.isValidPassword(newUser.password)) {
-      throw new BadRequestException(validationMessages.invalid.password);
-    }
     if (newUser.password !== newUser.repeatPassword) {
       throw new BadRequestException(validationMessages.invalid.repeatPassword);
     }

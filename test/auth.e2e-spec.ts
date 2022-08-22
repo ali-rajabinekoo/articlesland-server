@@ -47,7 +47,7 @@ describe('Auth (e2e)', () => {
 
   beforeEach(() => {
     const phone = '+989212210982';
-    newUser.username = 'test-2e2';
+    newUser.username = 'testendtoend';
     newUser.password = 'Test1234@12e2';
     newUser.repeatPassword = 'Test1234@12e2';
     newUser.phoneNumber = phone;
@@ -317,7 +317,7 @@ describe('Auth (e2e)', () => {
 
   it(`${route}/register (POST - 409) | Already exist (phoneNumber)`, async () => {
     const body: RegisterNewUserDto = { ...newUser };
-    body.username = 'test2';
+    body.username = 'testttttttttttt';
     const result: request.Response = await request(app.getHttpServer())
       .post(`${route}/register`)
       .send(body);

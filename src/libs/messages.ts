@@ -6,7 +6,12 @@ export const validationMessages = {
     phoneNumber: 'شماره موبایل الزامیست',
     code: 'کد یکبار مصرف الزامیست',
   },
+  length: {
+    usernameShort: 'نام کاربری باید حداقل شامل ۴ حرف باشد',
+    usernameLong: 'نام کاربری باید حداکثر شامل ۲۰ حرف باشد',
+  },
   invalid: {
+    username: 'نام کاربری باید شامل حروف انگلیسی باشد',
     phoneNumber: 'شماره موبایل وارد شده معتبر نیست',
     code: 'کد یکبار مصرف معتبر نیست',
     password:
