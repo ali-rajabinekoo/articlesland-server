@@ -4,7 +4,7 @@ import {
   Length,
   MaxLength,
   MinLength,
-  Matches,
+  Matches, IsAlpha,
 } from 'class-validator';
 import { Exclude } from 'class-transformer';
 import { validationMessages } from '../libs/messages';
@@ -27,7 +27,7 @@ export class RegisterNewUserDto {
   @IsNotEmpty({ message: validationMessages.empty.username })
   @MinLength(4, { message: validationMessages.length.usernameShort })
   @MaxLength(20, { message: validationMessages.length.usernameLong })
-  @Matches(/^[a-zA-Z]*$/g, { message: validationMessages.invalid.username })
+  @IsAlpha('en-US', { message: validationMessages.invalid.username })
   username: string;
 
   @ApiProperty({

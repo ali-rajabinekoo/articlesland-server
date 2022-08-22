@@ -34,6 +34,7 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import * as bcrypt from 'bcrypt';
 
 @ApiTags('auth')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -81,7 +82,9 @@ export class AuthController {
     if (!duplicatedUser) {
       user = await this.userService.addNewUser(newUser);
     } else if (!duplicatedUser.activated) {
-      user = duplicatedUser;
+      duplicatedUser.username = newUser.username;
+      duplicatedUser.password = await bcrypt.hash(newUser.password, 10);
+      user = await this.userService.saveUser(duplicatedUser);
     } else {
       throw new ConflictException(exceptionMessages.exist.user);
     }

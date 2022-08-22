@@ -4,7 +4,8 @@ import { MellipayamakResponse } from './schemas';
 
 export class Request {
   private connection: Axios;
-  private isTest = process.env.NODE_ENV === 'test';
+  private isTest =
+    process.env.NODE_ENV === 'test' || process.env.MODE === 'development';
 
   constructor() {
     this.makeNewConnection();

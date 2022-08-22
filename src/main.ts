@@ -7,6 +7,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors();
   app.useGlobalPipes(new ValidationPipe());
 
   const config = new DocumentBuilder()
@@ -19,11 +20,10 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);
-
+  
   clearingKeyvScheduler.start();
   await app.listen(8080);
 }
-
 bootstrap().catch((e) => {
   console.log(e);
   process.exit(1);
