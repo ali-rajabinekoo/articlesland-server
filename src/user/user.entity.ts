@@ -27,6 +27,10 @@ export class User {
   @Column({ unique: true })
   username: string;
 
+  @ApiProperty({ type: String, default: 'ArticlesLand user' })
+  @Column({ default: null })
+  displayName: string;
+
   @Column()
   @Exclude({ toPlainOnly: true })
   password: string;

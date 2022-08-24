@@ -1,3 +1,5 @@
+import { systemMessage } from './messages';
+
 export const mellipayamak = {
   url: 'https://rest.payamak-panel.com/api/SendSMS/BaseServiceNumber',
   username: '09212210982',
@@ -21,5 +23,18 @@ export const jwtConfig = {
   expireAt: '5400s',
 };
 
+export const nodemailerConfig = {
+  host: 'mail.articlesland.ir',
+  port: 465,
+  secure: true,
+  username: 'admin@articlesland.ir',
+  password: '1379ali9731',
+  from: 'admin@articlesland.ir',
+  subject: systemMessage.emailSubject,
+};
+
 // 2 minutes
 export const codeExpire = 120000;
+
+// 2 minutes
+export const emailCodeExpire = 120000;

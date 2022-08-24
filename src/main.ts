@@ -20,10 +20,11 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);
-  
+
   clearingKeyvScheduler.start();
   await app.listen(8080);
 }
+
 bootstrap().catch((e) => {
   console.log(e);
   process.exit(1);

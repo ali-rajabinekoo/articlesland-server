@@ -72,8 +72,8 @@ describe('AuthController', () => {
 
   beforeEach(() => {
     newUser.username = 'test';
-    newUser.password = 'Test1234@1';
-    newUser.repeatPassword = 'Test1234@1';
+    newUser.password = 'TesT1234@1';
+    newUser.repeatPassword = 'TesT1234@1';
     newUser.phoneNumber = '+989212210982';
 
     signupVerificationBody.code = '111111';
@@ -117,21 +117,7 @@ describe('AuthController', () => {
     }
 
     try {
-      body.password = '123456test';
-      await controller.register(body);
-    } catch (e) {
-      catchFunc(e);
-    }
-
-    try {
-      body.password = '123456test!@';
-      await controller.register(body);
-    } catch (e) {
-      catchFunc(e);
-    }
-
-    try {
-      body.password = '123456TEST!@';
+      body.password = 'test';
       await controller.register(body);
     } catch (e) {
       catchFunc(e);

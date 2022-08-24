@@ -23,6 +23,10 @@ export const validationMessages = {
 export const exceptionMessages = {
   exist: {
     user: 'کاربر از قبل وجود دارد',
+    mobile: 'شماره موبایل مورد نظر قبلا استفاده شده است',
+    sameMobile: 'شماره موبایل مورد نظر را قبلا ثبت کرده اید',
+    email: 'ایمیل مورد نظر قبلا استفاده شده است',
+    sameEmail: 'ایمیل مورد نظر را قبلا ثبت کرده اید',
   },
   notFound: {
     user: 'کاربر مورد نظر پیدا نشد',
@@ -34,4 +38,11 @@ export const exceptionMessages = {
   notAcceptable: {
     code: 'تا زمان پایان اعتبار کد ارسال شده منتظر بمانید',
   },
+  serverError: {
+    internal: 'خطایی در سرور رخ داده است',
+  },
+};
+
+export const systemMessage = {
+  emailSubject: 'کد تایید Articlesland',
 };
