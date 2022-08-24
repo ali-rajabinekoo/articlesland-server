@@ -110,7 +110,7 @@ export class AuthController {
   async registerVerify(
     @Body() userInfo: VerificationCodeDto,
   ): Promise<AuthLoginDto> {
-    const userId: string = await utils.geUserIdByVerifyCode(
+    const userId: string = await utils.getUserIdByVerifyCode(
       userInfo.code,
       userInfo.key,
     );
@@ -194,7 +194,7 @@ export class AuthController {
   async loginByCodeChecker(
     @Body() userInfo: VerificationCodeDto,
   ): Promise<AuthLoginDto> {
-    const userId: string = await utils.geUserIdByVerifyCode(
+    const userId: string = await utils.getUserIdByVerifyCode(
       userInfo.code,
       userInfo.key,
     );

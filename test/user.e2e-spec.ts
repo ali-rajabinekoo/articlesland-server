@@ -78,7 +78,7 @@ describe('AppController (e2e)', () => {
     token = loginResult.body.token;
   });
 
-  it(`${route}/info (GET - 200)`, async () => {
+  it(`${route}/ (GET - 200)`, async () => {
     const result: request.Response = await request(app.getHttpServer())
       .get(`${route}/info`)
       .set('Authorization', `bearer ${token}`)

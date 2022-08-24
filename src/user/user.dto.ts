@@ -4,7 +4,7 @@ import {
   Length,
   MaxLength,
   MinLength,
-  Matches, IsAlpha,
+  Matches, IsAlpha, IsEmail,
 } from 'class-validator';
 import { Exclude } from 'class-transformer';
 import { validationMessages } from '../libs/messages';
@@ -127,4 +127,26 @@ export class VerificationCodeDto {
 
 export class RequestFormat {
   user: User;
+}
+
+export class SendEmailVerificationCodeDto {
+  @ApiProperty({
+    default: 'ali.rajabinekoo@protonmail.com',
+    description: 'Valid email address',
+  })
+  @IsNotEmpty({ message: validationMessages.empty.phoneNumber })
+  @IsEmail({}, { message: validationMessages.invalid.phoneNumber })
+  email: string;
+}
+
+export class VerifyByCodeDto {
+  @ApiProperty({
+    default: '123456',
+    maxLength: 6,
+    minLength: 6,
+    description: 'Verification code',
+  })
+  @Length(6)
+  @IsNotEmpty({ message: validationMessages.empty.code })
+  code: string;
 }

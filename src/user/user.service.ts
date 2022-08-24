@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Body, Injectable, NotAcceptableException, NotFoundException, Req } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
   LoginByCredentialDto,
-  RegisterNewUserDto,
+  RegisterNewUserDto, RequestFormat,
   SendLoginCodeDto,
   UserUniqueInfoDto,
 } from './user.dto';
@@ -11,6 +11,10 @@ import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import utils from '../libs/utils';
 import { Article } from '../article/article.entity';
+import { exceptionMessages } from '../libs/messages';
+import { KeyResponseDto } from '../auth/auth.dto';
+import { MellipayamakResponse } from '../libs/schemas';
+import request from '../libs/request';
 
 @Injectable()
 export class UserService {
@@ -61,6 +65,20 @@ export class UserService {
     });
   }
 
+  async findUserByEmail(email: string): Promise<User> {
+    return this.usersRepository.findOne({
+      where: { email },
+      relations: [
+        'articles',
+        'followers',
+        'following',
+        'reports',
+        'likes',
+        'bookmarks',
+      ],
+    });
+  }
+
   async verifyUser(user: User): Promise<void> {
     user.activated = true;
     await this.usersRepository.save(user);
@@ -74,5 +92,14 @@ export class UserService {
 
   async saveUser(user: User): Promise<User> {
     return this.usersRepository.save(user);
+  }
+
+  async sendCode(user: User): Promise<boolean> {
+    const { code } = await utils.generateUpdateMobileCode(user);
+    const { Value }: MellipayamakResponse = await request.sendSms(
+      user.phoneNumber,
+      [code],
+    );
+    return Value.length >= 15;
   }
 }
