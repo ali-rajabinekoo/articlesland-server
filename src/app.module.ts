@@ -18,6 +18,8 @@ import { Bookmark } from './bookmark/bookmark.entity';
 import { Report } from './report/report.entity';
 import { FollowModule } from './follow/follow.module';
 import { Follow } from './follow/follow.entity';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 export const AppModuleMetadata = {
   imports: [
@@ -40,6 +42,10 @@ export const AppModuleMetadata = {
       ],
       synchronize: true,
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      serveRoot: '/statics',
+    }),
     AuthModule,
     UserModule,
     ArticleModule,
@@ -53,4 +59,5 @@ export const AppModuleMetadata = {
 };
 
 @Module(AppModuleMetadata)
-export class AppModule {}
+export class AppModule {
+}

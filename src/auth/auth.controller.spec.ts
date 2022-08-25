@@ -98,32 +98,6 @@ describe('AuthController', () => {
     }
   });
 
-  it('should not add new user when password is weak', async () => {
-    const body: RegisterNewUserDto = { ...newUser };
-    const catchFunc = (e) => {
-      expect(e instanceof BadRequestException).toEqual(true);
-      expect(e.response).toMatchObject({
-        statusCode: 400,
-        message: validationMessages.invalid.password,
-        error: 'Bad Request',
-      });
-    };
-
-    try {
-      body.password = '123';
-      await controller.register(body);
-    } catch (e) {
-      catchFunc(e);
-    }
-
-    try {
-      body.password = 'test';
-      await controller.register(body);
-    } catch (e) {
-      catchFunc(e);
-    }
-  });
-
   it('should not verify new user with bad key', async () => {
     try {
       signupVerificationBody.key = 'badkey';

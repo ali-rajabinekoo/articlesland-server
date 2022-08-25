@@ -7,22 +7,26 @@ import {
   UseInterceptors,
   Patch,
   Body,
+  Put,
   ForbiddenException,
   NotAcceptableException,
   InternalServerErrorException,
   ConflictException,
+  UploadedFile, BadRequestException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import {
   RequestFormat,
   SendEmailVerificationCodeDto,
-  SendLoginCodeDto,
+  SendLoginCodeDto, UpdateUserInfo,
   VerifyByCodeDto,
 } from './user.dto';
 import { User } from './user.entity';
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
   ApiOkResponse,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -31,7 +35,14 @@ import { UnauthorizedDto } from '../auth/auth.dto';
 import utils from '../libs/utils';
 import { generateTemplate } from '../libs/email.template';
 import { NodemailerOptionsDto } from '../libs/schemas';
-import { exceptionMessages } from '../libs/messages';
+import { exceptionMessages, validationMessages } from '../libs/messages';
+import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  imageFileFilter,
+  imageSize,
+  imageStorage,
+} from '../libs/file-uploading.utils';
+import * as bcrypt from 'bcrypt';
 
 @Controller('user')
 @ApiBearerAuth()
@@ -55,7 +66,6 @@ export class UserController {
   @Patch('email/send')
   @ApiOkResponse({
     description: 'Email address verification code sent.',
-    type: User,
   })
   async sendEmailVerificationCode(
     @Body() body: SendEmailVerificationCodeDto,
@@ -108,7 +118,6 @@ export class UserController {
   @Patch('mobile/send')
   @ApiOkResponse({
     description: 'Mobile verification code sent.',
-    type: User,
   })
   async sendMobileVerificationCode(
     @Body() userInfo: SendLoginCodeDto,
@@ -163,6 +172,62 @@ export class UserController {
       throw new ForbiddenException(exceptionMessages.invalid.code);
     }
     user.phoneNumber = utils.normalizePhoneNumber(mobile);
+    return this.userService.saveUser(user);
+  }
+
+  @Patch('avatar')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: imageStorage,
+      fileFilter: imageFileFilter,
+      limits: { fileSize: imageSize },
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        image: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Avatar updated.',
+    type: User,
+  })
+  async uploadAvatar(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: RequestFormat,
+  ): Promise<User> {
+    const url: string = file.path.replace('public', '/statics');
+    const user: User = req.user;
+    user.avatar = url;
+    return await this.userService.saveUser(user);
+  }
+
+  @Put()
+  @ApiOkResponse({
+    description: 'Profile updated.',
+    type: User,
+  })
+  async updateProfile(
+    @Body() userInfo: UpdateUserInfo,
+    @Req() req: RequestFormat,
+  ): Promise<User> {
+    if (userInfo.password !== userInfo.repeatPassword) {
+      throw new BadRequestException(validationMessages.invalid.repeatPassword);
+    }
+    const user: User = await this.userService.findUserById(req.user.id);
+    if (!!userInfo.username) user.username = userInfo.username;
+    if (!!userInfo.displayName) user.displayName = userInfo.displayName;
+    if (!!userInfo.bio) user.bio = userInfo.bio;
+    if (!!userInfo.password) {
+      user.password = await bcrypt.hash(userInfo.password, 10);
+    }
     return this.userService.saveUser(user);
   }
 }
