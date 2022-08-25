@@ -1,18 +1,15 @@
-import { Body, Injectable, NotAcceptableException, NotFoundException, Req } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
   LoginByCredentialDto,
-  RegisterNewUserDto, RequestFormat,
+  RegisterNewUserDto,
   SendLoginCodeDto,
   UserUniqueInfoDto,
 } from './user.dto';
 import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import utils from '../libs/utils';
-import { Article } from '../article/article.entity';
-import { exceptionMessages } from '../libs/messages';
-import { KeyResponseDto } from '../auth/auth.dto';
 import { MellipayamakResponse } from '../libs/schemas';
 import request from '../libs/request';
 

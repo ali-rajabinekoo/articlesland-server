@@ -18,7 +18,11 @@ export class Category {
   @Column({ unique: true })
   title: string;
 
-  @ApiProperty({ type: String, default: '/articleAvatar/articleAvatar1.png' })
+  @ApiProperty({ type: String, default: 'سیاست' })
+  @Column()
+  displayTitle: string;
+
+  @ApiProperty({ type: String, default: '/assets/categories/freelancer.png' })
   @Column()
   avatar: string;
 

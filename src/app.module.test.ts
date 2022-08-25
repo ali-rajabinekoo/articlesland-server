@@ -17,6 +17,8 @@ import { LikeModule } from './like/like.module';
 import { BookmarkModule } from './bookmark/bookmark.module';
 import { ReportModule } from './report/report.module';
 import { FollowModule } from './follow/follow.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 export const TypeOrmTestingModule = () => [
   TypeOrmModule.forRoot({
@@ -37,6 +39,10 @@ export const TypeOrmTestingModule = () => [
       Follow,
     ],
     synchronize: true,
+  }),
+  ServeStaticModule.forRoot({
+    rootPath: join(__dirname, '..', 'public'),
+    serveRoot: '/statics',
   }),
   TypeOrmModule.forFeature([
     User,
