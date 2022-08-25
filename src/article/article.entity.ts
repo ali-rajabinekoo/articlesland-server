@@ -94,10 +94,4 @@ export class Article {
     onUpdate: 'CASCADE',
   })
   bookmarks: Relation<Bookmark[]>;
-
-  @OneToMany(() => Comment, (comment) => comment.article, {
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  })
-  articles: Relation<Article[]>;
 }

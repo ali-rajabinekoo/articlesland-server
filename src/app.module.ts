@@ -59,5 +59,4 @@ export const AppModuleMetadata = {
 };
 
 @Module(AppModuleMetadata)
-export class AppModule {
-}
+export class AppModule {}
