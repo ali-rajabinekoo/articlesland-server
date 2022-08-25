@@ -4,7 +4,9 @@ import {
   Length,
   MaxLength,
   MinLength,
-  Matches, IsAlpha, IsEmail,
+  Matches,
+  IsEmail,
+  IsAlphanumeric,
 } from 'class-validator';
 import { Exclude } from 'class-transformer';
 import { validationMessages } from '../libs/messages';
@@ -27,7 +29,7 @@ export class RegisterNewUserDto {
   @IsNotEmpty({ message: validationMessages.empty.username })
   @MinLength(4, { message: validationMessages.length.usernameShort })
   @MaxLength(20, { message: validationMessages.length.usernameLong })
-  @IsAlpha('en-US', { message: validationMessages.invalid.username })
+  @IsAlphanumeric('en-US', { message: validationMessages.invalid.username })
   username: string;
 
   @ApiProperty({
@@ -44,7 +46,7 @@ export class RegisterNewUserDto {
   phoneNumber: string;
 
   @ApiProperty({
-    default: '123!@#AAAaaa',
+    default: '1379rajabi',
     description: 'Password',
     minLength: 8,
     examples: [
@@ -56,12 +58,12 @@ export class RegisterNewUserDto {
   })
   @Exclude({ toPlainOnly: true })
   @IsNotEmpty({ message: validationMessages.empty.password })
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/g, {
+  @Matches(/^(?=.*[a-zA-Z])(?=.*[0-9])(?=.{8,})/g, {
     message: validationMessages.invalid.password,
   })
   password: string;
 
-  @ApiProperty({ default: '123!@#AAAaaa', description: 'Repeat password' })
+  @ApiProperty({ default: '1379rajabi', description: 'Repeat password' })
   @Exclude({ toPlainOnly: true })
   @IsNotEmpty({ message: validationMessages.empty.repeatPassword })
   repeatPassword: string;
@@ -156,11 +158,11 @@ export class UpdateUserInfo {
   @IsNotEmpty({ message: validationMessages.empty.username })
   @MinLength(4, { message: validationMessages.length.usernameShort })
   @MaxLength(20, { message: validationMessages.length.usernameLong })
-  @IsAlpha('en-US', { message: validationMessages.invalid.username })
+  @IsAlphanumeric('en-US', { message: validationMessages.invalid.username })
   username: string;
 
   @ApiProperty({
-    default: '123!@#AAAaaa',
+    default: '1379rajabi',
     description: 'Password',
     minLength: 8,
     examples: [
@@ -172,12 +174,12 @@ export class UpdateUserInfo {
   })
   @Exclude({ toPlainOnly: true })
   @IsNotEmpty({ message: validationMessages.empty.password })
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/g, {
+  @Matches(/^(?=.*[a-zA-Z])(?=.*[0-9])(?=.{8,})/g, {
     message: validationMessages.invalid.password,
   })
   password: string;
 
-  @ApiProperty({ default: '123!@#AAAaaa', description: 'Repeat password' })
+  @ApiProperty({ default: '1379rajabi', description: 'Repeat password' })
   @Exclude({ toPlainOnly: true })
   @IsNotEmpty({ message: validationMessages.empty.repeatPassword })
   repeatPassword: string;
