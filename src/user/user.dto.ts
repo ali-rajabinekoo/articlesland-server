@@ -150,3 +150,47 @@ export class VerifyByCodeDto {
   @IsNotEmpty({ message: validationMessages.empty.code })
   code: string;
 }
+
+export class UpdateUserInfo {
+  @ApiProperty({ default: 'articlesLandUser', description: 'Username' })
+  @IsNotEmpty({ message: validationMessages.empty.username })
+  @MinLength(4, { message: validationMessages.length.usernameShort })
+  @MaxLength(20, { message: validationMessages.length.usernameLong })
+  @IsAlpha('en-US', { message: validationMessages.invalid.username })
+  username: string;
+
+  @ApiProperty({
+    default: '123!@#AAAaaa',
+    description: 'Password',
+    minLength: 8,
+    examples: [
+      'lowercase letter',
+      'uppercase letter',
+      'special character',
+      'number',
+    ],
+  })
+  @Exclude({ toPlainOnly: true })
+  @IsNotEmpty({ message: validationMessages.empty.password })
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/g, {
+    message: validationMessages.invalid.password,
+  })
+  password: string;
+
+  @ApiProperty({ default: '123!@#AAAaaa', description: 'Repeat password' })
+  @Exclude({ toPlainOnly: true })
+  @IsNotEmpty({ message: validationMessages.empty.repeatPassword })
+  repeatPassword: string;
+
+  @ApiProperty({ default: 'ArticlesLand User', description: 'Display name' })
+  @IsNotEmpty({ message: validationMessages.empty.username })
+  @MinLength(4, { message: validationMessages.length.usernameShort })
+  @MaxLength(20, { message: validationMessages.length.usernameLong })
+  displayName: string;
+
+  @ApiProperty({ default: 'This is ArticlesLand User', description: 'Bio' })
+  @IsNotEmpty({ message: validationMessages.empty.username })
+  @MinLength(4, { message: validationMessages.length.usernameShort })
+  @MaxLength(100, { message: validationMessages.length.usernameLong })
+  bio: string;
+}
