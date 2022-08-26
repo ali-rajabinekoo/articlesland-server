@@ -32,7 +32,7 @@ export class Article {
   bodyUrl: string;
 
   @ApiProperty({ type: String, default: '/banner/article1.jpg' })
-  @Column()
+  @Column({ default: null })
   bannerUrl: string;
 
   @ApiProperty({ type: Boolean, default: true })
@@ -42,10 +42,6 @@ export class Article {
   @ApiProperty({ type: Number, default: 8 })
   @Column({ default: 0 })
   viewed: number;
-
-  @ApiProperty({ type: String, default: 'user' })
-  @Column({ default: 'user' })
-  role: string;
 
   @ApiProperty({ type: String, default: new Date() })
   @CreateDateColumn()
@@ -94,4 +90,10 @@ export class Article {
     onUpdate: 'CASCADE',
   })
   bookmarks: Relation<Bookmark[]>;
+
+  @OneToMany(() => Comment, (comment) => comment.article, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  comments: Relation<Comment[]>;
 }
