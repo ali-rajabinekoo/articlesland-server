@@ -5,6 +5,10 @@ export const validationMessages = {
     repeatPassword: 'تکرار رمز عبور الزامیست',
     phoneNumber: 'شماره موبایل الزامیست',
     code: 'کد یکبار مصرف الزامیست',
+    articleTitle: 'عنوان مقاله الزامیست',
+    articleBody: 'متن بدنه مقاله الزامیست',
+    categoryId: 'انتخاب لیست برای مقاله الزامیست',
+    articleBanner: 'انتخاب تصویر برای مقاله الزامیست',
   },
   length: {
     usernameShort: 'نام کاربری باید حداقل شامل ۴ حرف باشد',
@@ -26,9 +30,12 @@ export const exceptionMessages = {
     sameMobile: 'شماره موبایل مورد نظر را قبلا ثبت کرده اید',
     email: 'ایمیل مورد نظر قبلا استفاده شده است',
     sameEmail: 'ایمیل مورد نظر را قبلا ثبت کرده اید',
+    articleTitle: 'مقاله با عنوان مورد نظر از قبل وجود دارد',
   },
   notFound: {
     user: 'کاربر مورد نظر پیدا نشد',
+    category: 'لیست مورد نظر یافت نشد',
+    article: 'مقاله مورد نظر یافت نشد',
   },
   invalid: {
     jwt: 'دسترسی شما نامعتبر است. لطفا مجدد لاگین کنید',
@@ -41,6 +48,9 @@ export const exceptionMessages = {
   },
   serverError: {
     internal: 'خطایی در سرور رخ داده است',
+  },
+  permission: {
+    main: 'شما دسترسی لازم برای این عملیات را نداید',
   },
 };
 

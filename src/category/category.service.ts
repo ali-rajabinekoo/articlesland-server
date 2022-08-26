@@ -9,7 +9,8 @@ export class CategoryService {
   constructor(
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
-  ) {}
+  ) {
+  }
 
   async preInsertCategories(): Promise<void> {
     for (const category of categoryList) {
@@ -25,5 +26,9 @@ export class CategoryService {
         await this.categoryRepository.save(newCategory);
       }
     }
+  }
+
+  async getArticleById(id: number): Promise<Category> {
+    return this.categoryRepository.findOneBy({ id });
   }
 }

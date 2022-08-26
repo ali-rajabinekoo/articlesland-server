@@ -75,7 +75,7 @@ export class LoginByCredentialDto {
   username: string;
 
   @ApiProperty({
-    default: '123!@#AAAaaa',
+    default: '1379rajabi',
     description: 'Password',
     minLength: 8,
     examples: [
