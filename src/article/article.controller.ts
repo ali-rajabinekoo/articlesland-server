@@ -40,7 +40,6 @@ import {
 } from '../libs/file-uploading.utils';
 import { User } from '../user/user.entity';
 import { join } from 'path';
-import * as fs from 'fs/promises';
 
 @Controller('article')
 @ApiBearerAuth()
