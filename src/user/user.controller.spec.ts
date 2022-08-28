@@ -13,7 +13,7 @@ import {
   VerifyByCodeDto,
 } from './user.dto';
 import { exceptionMessages } from '../libs/messages';
-import { ConflictException, NotAcceptableException } from '@nestjs/common';
+import { NotAcceptableException } from '@nestjs/common';
 
 describe('UserController', () => {
   let controller: UserController;

@@ -13,7 +13,6 @@ describe('AppController (e2e)', () => {
   const route = '/user';
   const authRoute = '/auth';
   let repository: Repository<User>;
-  let user: User;
   let token: string;
   const loginBody: LoginByCredentialDto = new LoginByCredentialDto();
   const newUser: RegisterNewUserDto = new RegisterNewUserDto();
@@ -40,7 +39,6 @@ describe('AppController (e2e)', () => {
     const newUserInstance: User = await repository.create(newUser);
     newUserInstance.activated = true;
     await repository.save(newUserInstance);
-    user = await repository.findOneBy({ username: newUser.username });
 
     loginBody.username = newUser.username;
     loginBody.password = newUser.password;

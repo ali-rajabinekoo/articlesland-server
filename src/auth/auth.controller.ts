@@ -29,6 +29,7 @@ import {
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
   ApiNotAcceptableResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -36,9 +37,12 @@ import {
 } from '@nestjs/swagger';
 import * as bcrypt from 'bcrypt';
 
+@Controller('auth')
 @ApiTags('auth')
 @UseInterceptors(ClassSerializerInterceptor)
-@Controller('auth')
+@ApiInternalServerErrorResponse({
+  description: 'Internal server error',
+})
 export class AuthController {
   constructor(
     private userService: UserService,
@@ -57,7 +61,7 @@ export class AuthController {
       'Invalid password.',
       'Invalid phoneNumber.',
       'The password and its repetition are not the same.',
-      'Username should contains english letters',
+      'Username should contains english letters and numbers',
       'Username should be lower then equal 20 english letters',
       'Username should be greater then equal 4 english letters',
     ].join(' | '),

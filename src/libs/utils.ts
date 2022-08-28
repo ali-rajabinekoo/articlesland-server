@@ -8,10 +8,9 @@ import {
   nodemailerConfig,
 } from './config';
 import * as nodemailer from 'nodemailer';
-import { MellipayamakResponse, NodemailerOptionsDto } from './schemas';
+import { NodemailerOptionsDto } from './schemas';
 import { Transporter } from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
-import request from './request';
 
 class Utils {
   private keyvClient = new Keyv(

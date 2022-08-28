@@ -9,8 +9,7 @@ export class CategoryService {
   constructor(
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
-  ) {
-  }
+  ) {}
 
   async preInsertCategories(): Promise<void> {
     for (const category of categoryList) {
