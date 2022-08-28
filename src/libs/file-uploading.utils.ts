@@ -3,7 +3,7 @@ import { diskStorage } from 'multer';
 import { BadRequestException } from '@nestjs/common';
 
 export const imageFileFilter = (req, file: Express.Multer.File, callback) => {
-  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+  if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
     return callback(
       new BadRequestException(exceptionMessages.invalid.imageFileFormat),
       false,

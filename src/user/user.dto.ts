@@ -7,6 +7,7 @@ import {
   Matches,
   IsEmail,
   IsAlphanumeric,
+  IsOptional,
 } from 'class-validator';
 import { Exclude } from 'class-transformer';
 import { validationMessages } from '../libs/messages';
@@ -22,6 +23,13 @@ export class UserJwtDto {
 export class UserUniqueInfoDto {
   username: string;
   phoneNumber: string;
+}
+
+export class CreateUserQuery {
+  username: string;
+  phoneNumber: string;
+  password: string;
+  displayName?: string;
 }
 
 export class RegisterNewUserDto {
@@ -155,11 +163,11 @@ export class VerifyByCodeDto {
 
 export class UpdateUserInfo {
   @ApiProperty({ default: 'articlesLandUser', description: 'Username' })
-  @IsNotEmpty({ message: validationMessages.empty.username })
   @MinLength(4, { message: validationMessages.length.usernameShort })
   @MaxLength(20, { message: validationMessages.length.usernameLong })
   @IsAlphanumeric('en-US', { message: validationMessages.invalid.username })
-  username: string;
+  @IsOptional()
+  username?: string | undefined;
 
   @ApiProperty({
     default: '1379rajabi',
@@ -173,26 +181,26 @@ export class UpdateUserInfo {
     ],
   })
   @Exclude({ toPlainOnly: true })
-  @IsNotEmpty({ message: validationMessages.empty.password })
   @Matches(/^(?=.*[a-zA-Z])(?=.*[0-9])(?=.{8,})/g, {
     message: validationMessages.invalid.password,
   })
-  password: string;
+  @IsOptional()
+  password?: string | undefined;
 
   @ApiProperty({ default: '1379rajabi', description: 'Repeat password' })
   @Exclude({ toPlainOnly: true })
-  @IsNotEmpty({ message: validationMessages.empty.repeatPassword })
-  repeatPassword: string;
+  @IsOptional()
+  repeatPassword?: string | undefined;
 
   @ApiProperty({ default: 'ArticlesLand User', description: 'Display name' })
-  @IsNotEmpty({ message: validationMessages.empty.username })
-  @MinLength(4, { message: validationMessages.length.usernameShort })
-  @MaxLength(20, { message: validationMessages.length.usernameLong })
-  displayName: string;
+  @MinLength(4, { message: validationMessages.length.displayNameShort })
+  @MaxLength(50, { message: validationMessages.length.displayNameLong })
+  @IsOptional()
+  displayName?: string | undefined;
 
   @ApiProperty({ default: 'This is ArticlesLand User', description: 'Bio' })
-  @IsNotEmpty({ message: validationMessages.empty.username })
-  @MinLength(4, { message: validationMessages.length.usernameShort })
-  @MaxLength(100, { message: validationMessages.length.usernameLong })
-  bio: string;
+  @MinLength(4, { message: validationMessages.length.bioShort })
+  @MaxLength(150, { message: validationMessages.length.bioLong })
+  @IsOptional()
+  bio?: string | undefined;
 }

@@ -14,8 +14,7 @@ export class ArticleService {
   constructor(
     @InjectRepository(Article)
     private articlesRepository: Repository<Article>,
-  ) {
-  }
+  ) {}
 
   private async saveArticleBody(body: string, cat: string): Promise<string> {
     const articleDir: string = join(__dirname, '../../public/articles');
@@ -112,8 +111,7 @@ export class ArticleService {
         );
         try {
           await this.removeSavedFile(this.urlToBodyPath(mainArticle.bodyUrl));
-        } catch (e) {
-        }
+        } catch (e) {}
         mainArticle.bodyUrl = this.bodyPathToUrl(bodyPath);
       }
     }
@@ -127,8 +125,7 @@ export class ArticleService {
       if (!!mainArticle.bannerUrl) {
         try {
           await this.removeSavedFile(this.urlToBodyPath(mainArticle.bannerUrl));
-        } catch (e) {
-        }
+        } catch (e) {}
       }
       mainArticle.bannerUrl = this.bodyPathToUrl(bannerUrl);
     }
@@ -171,14 +168,12 @@ export class ArticleService {
     if (!!article?.bodyUrl) {
       try {
         await this.removeSavedFile(this.urlToBodyPath(article.bodyUrl));
-      } catch {
-      }
+      } catch {}
     }
     if (!!article?.bannerUrl) {
       try {
         await this.removeSavedFile(this.urlToBodyPath(article.bannerUrl));
-      } catch {
-      }
+      } catch {}
     }
     await this.articlesRepository.remove(article);
   }

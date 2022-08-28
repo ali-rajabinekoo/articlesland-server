@@ -16,9 +16,14 @@ import {
   Delete,
 } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
+  ApiConflictResponse,
   ApiConsumes,
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -38,7 +43,6 @@ import {
   imageSize,
   imageStorage,
 } from '../libs/file-uploading.utils';
-import { User } from '../user/user.entity';
 import { join } from 'path';
 
 @Controller('article')
@@ -47,12 +51,14 @@ import { join } from 'path';
 @UseInterceptors(ClassSerializerInterceptor)
 @UseGuards(JwtAuthGuard)
 @ApiUnauthorizedResponse({ description: 'Unauthorized', type: UnauthorizedDto })
+@ApiInternalServerErrorResponse({
+  description: 'Internal server error',
+})
 export class ArticleController {
   constructor(
     private articleService: ArticleService,
     private categoryService: CategoryService,
-  ) {
-  }
+  ) {}
 
   @Post()
   @UseInterceptors(
@@ -68,8 +74,19 @@ export class ArticleController {
   })
   @ApiOkResponse({
     description: 'Avatar updated.',
-    type: User,
+    type: Article,
   })
+  @ApiBadRequestResponse({
+    description: [
+      'Banner is empty.',
+      'Banner should be jpg, jpeg, png.',
+      'Banner size should be lower then 2mb.',
+    ].join(' | '),
+  })
+  @ApiConflictResponse({
+    description: 'Article already exists with this title.',
+  })
+  @ApiNotFoundResponse({ description: 'Category not found.' })
   async createNewArticle(
     @Req() req: RequestFormat,
     @Body() body: ArticleDto,
@@ -100,8 +117,7 @@ export class ArticleController {
       try {
         const filePath: string = join(__dirname, `../../${file?.path}`);
         await this.articleService.removeSavedFile(filePath);
-      } catch {
-      }
+      } catch {}
       throw e;
     }
   }
@@ -120,7 +136,23 @@ export class ArticleController {
   })
   @ApiOkResponse({
     description: 'Avatar updated.',
-    type: User,
+    type: Article,
+  })
+  @ApiBadRequestResponse({
+    description: [
+      'Banner should be jpg, jpeg, png.',
+      'Banner size should be lower then 2mb.',
+      'Id parameter required',
+    ].join(' | '),
+  })
+  @ApiConflictResponse({
+    description: 'Article already exists with this title.',
+  })
+  @ApiNotFoundResponse({
+    description: ['Category not found.', 'Article not found.'].join(' | '),
+  })
+  @ApiForbiddenResponse({
+    description: "You don't have permission",
   })
   async updateArticle(
     @Req() req: RequestFormat,
@@ -165,13 +197,17 @@ export class ArticleController {
       try {
         const filePath: string = join(__dirname, `../../${file?.path}`);
         await this.articleService.removeSavedFile(filePath);
-      } catch {
-      }
+      } catch {}
       throw e;
     }
   }
 
   @Delete(':id')
+  @ApiNotFoundResponse({ description: 'Article not found.' })
+  @ApiBadRequestResponse({ description: 'Id parameter required.' })
+  @ApiForbiddenResponse({
+    description: "You don't have permission",
+  })
   async removeArticle(
     @Req() req: RequestFormat,
     @Param('id') id: number,

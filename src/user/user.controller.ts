@@ -12,21 +12,28 @@ import {
   NotAcceptableException,
   InternalServerErrorException,
   ConflictException,
-  UploadedFile, BadRequestException,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import {
   RequestFormat,
   SendEmailVerificationCodeDto,
-  SendLoginCodeDto, UpdateUserInfo,
+  SendLoginCodeDto,
+  UpdateUserInfo,
   VerifyByCodeDto,
 } from './user.dto';
 import { User } from './user.entity';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
+  ApiConflictResponse,
   ApiConsumes,
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiNotAcceptableResponse,
   ApiOkResponse,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -50,9 +57,11 @@ import * as bcrypt from 'bcrypt';
 @UseInterceptors(ClassSerializerInterceptor)
 @UseGuards(JwtAuthGuard)
 @ApiUnauthorizedResponse({ description: 'Unauthorized', type: UnauthorizedDto })
+@ApiInternalServerErrorResponse({
+  description: 'Internal server error',
+})
 export class UserController {
-  constructor(private userService: UserService) {
-  }
+  constructor(private userService: UserService) {}
 
   @Get()
   @ApiOkResponse({
@@ -66,6 +75,12 @@ export class UserController {
   @Patch('email/send')
   @ApiOkResponse({
     description: 'Email address verification code sent.',
+  })
+  @ApiConflictResponse({
+    description: 'Email is submitted by this user.',
+  })
+  @ApiNotAcceptableResponse({
+    description: 'Email is submitted by another user.',
   })
   async sendEmailVerificationCode(
     @Body() body: SendEmailVerificationCodeDto,
@@ -94,6 +109,12 @@ export class UserController {
     description: 'Email address verified.',
     type: User,
   })
+  @ApiBadRequestResponse({
+    description: ['Empty inputs.', 'Invalid code length.'].join(' | '),
+  })
+  @ApiForbiddenResponse({
+    description: 'Invalid code.',
+  })
   async verifyEmailByCode(
     @Body() body: VerifyByCodeDto,
     @Req() req: RequestFormat,
@@ -118,6 +139,15 @@ export class UserController {
   @Patch('mobile/send')
   @ApiOkResponse({
     description: 'Mobile verification code sent.',
+  })
+  @ApiConflictResponse({
+    description: 'PhoneNumber is submitted by this user.',
+  })
+  @ApiNotAcceptableResponse({
+    description: [
+      'PhoneNumber is submitted by another user.',
+      'Wait until code expiration time.',
+    ].join(' | '),
   })
   async sendMobileVerificationCode(
     @Body() userInfo: SendLoginCodeDto,
@@ -153,6 +183,12 @@ export class UserController {
   @ApiOkResponse({
     description: 'Mobile code verified.',
     type: User,
+  })
+  @ApiBadRequestResponse({
+    description: ['Empty inputs.', 'Invalid code length.'].join(' | '),
+  })
+  @ApiForbiddenResponse({
+    description: 'Invalid code.',
   })
   async verifyMobileByCode(
     @Body() userInfo: VerifyByCodeDto,
@@ -199,10 +235,20 @@ export class UserController {
     description: 'Avatar updated.',
     type: User,
   })
+  @ApiBadRequestResponse({
+    description: [
+      'Avatar is empty.',
+      'Avatar should be jpg, jpeg, png.',
+      'Avatar size should be lower then 2mb.',
+    ].join(' | '),
+  })
   async uploadAvatar(
     @UploadedFile() file: Express.Multer.File,
     @Req() req: RequestFormat,
   ): Promise<User> {
+    if (!file) {
+      throw new BadRequestException(validationMessages.empty.avatar);
+    }
     const url: string = file.path.replace('public', '/statics');
     const user: User = req.user;
     user.avatar = url;
@@ -214,11 +260,25 @@ export class UserController {
     description: 'Profile updated.',
     type: User,
   })
+  @ApiBadRequestResponse({
+    description: [
+      'Empty inputs.',
+      'Invalid password.',
+      'Bio should be lower then equal 150 characters',
+      'Bio should be greater then equal 4 characters',
+      'The password and its repetition are not the same.',
+      'Username should contains english letters and numbers',
+      'DisplayName should be lower then equal 50 characters',
+      'DisplayName should be greater then equal 4 characters',
+      'Username should be lower then equal 20 english letters and numbers',
+      'Username should be greater then equal 4 english letters and numbers',
+    ].join(' | '),
+  })
   async updateProfile(
     @Body() userInfo: UpdateUserInfo,
     @Req() req: RequestFormat,
   ): Promise<User> {
-    if (userInfo.password !== userInfo.repeatPassword) {
+    if (!!userInfo.password && userInfo.password !== userInfo.repeatPassword) {
       throw new BadRequestException(validationMessages.invalid.repeatPassword);
     }
     const user: User = await this.userService.findUserById(req.user.id);
