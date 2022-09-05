@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Article } from './article.entity';
 import { Repository } from 'typeorm';
-import { ArticleDto, EditArticleDto } from './article.dto';
+import { ArticleDto, EditArticleDto, PublishArticleDto } from './article.dto';
 import * as fs from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidV4 } from 'uuid';
@@ -11,14 +11,21 @@ import { User } from '../user/user.entity';
 
 @Injectable()
 export class ArticleService {
+  private mainArticlesDirectoryCreated = false;
+
   constructor(
     @InjectRepository(Article)
     private articlesRepository: Repository<Article>,
-  ) {}
+  ) {
+  }
 
-  private async saveArticleBody(body: string, cat: string): Promise<string> {
+  private generateArticleName(): string {
+    return join(__dirname, `../../public/articles/${uuidV4()}.html`);
+  }
+
+  private async checkMainArticlesDirectories(): Promise<void> {
     const articleDir: string = join(__dirname, '../../public/articles');
-    const catDir: string = join(__dirname, `../../public/articles/${cat}/`);
+    const catDir: string = join(__dirname, `../../public/articles/`);
     try {
       await fs.readdir(articleDir);
     } catch {
@@ -29,18 +36,19 @@ export class ArticleService {
     } catch {
       await fs.mkdir(catDir);
     }
-    let filePath: string = join(
-      __dirname,
-      `../../public/articles/${cat}/f4ce6d5f-8ca1-472d-be2b-be1dd025bddc.html`,
-    );
+    this.mainArticlesDirectoryCreated = true;
+  }
+
+  private async saveArticleBody(body: string): Promise<string> {
+    if (!this.mainArticlesDirectoryCreated) {
+      await this.checkMainArticlesDirectories();
+    }
+    let filePath: string = this.generateArticleName();
     let exist = true;
     while (exist) {
       try {
         await fs.readFile(filePath);
-        filePath = join(
-          __dirname,
-          `../../public/articles/${cat}/${uuidV4()}.html`,
-        );
+        filePath = this.generateArticleName();
       } catch {
         exist = false;
       }
@@ -70,23 +78,13 @@ export class ArticleService {
     return title.split(' ').join('-').toLowerCase();
   }
 
-  async addNewArticle(
-    fields: ArticleDto,
-    category: Category,
-    owner: User,
-    bannerUrl: string,
-  ): Promise<Article> {
-    const bodyPath: string = await this.saveArticleBody(
-      fields.body.trim(),
-      this.normalizeCategoryDirName(category.title),
-    );
+  async addNewArticle(fields: ArticleDto, owner: User): Promise<Article> {
+    const bodyPath: string = await this.saveArticleBody(fields.body.trim());
     try {
       const newArticle: Article = await this.articlesRepository.create({
         title: fields.title.trim(),
         bodyUrl: this.bodyPathToUrl(bodyPath),
         owner,
-        category,
-        bannerUrl: this.bodyPathToUrl(bannerUrl),
       });
       return await this.articlesRepository.save(newArticle);
     } catch (e) {
@@ -98,26 +96,22 @@ export class ArticleService {
   async updateArticle(
     mainArticle: Article,
     newInfo: EditArticleDto,
-    bannerUrl?: string | undefined,
-    category?: Category | undefined,
   ): Promise<Article> {
     if (!!newInfo.body) {
-      if (!category) {
-        await this.updateArticleBody(mainArticle.bodyUrl, newInfo.body);
-      } else {
-        const bodyPath: string = await this.saveArticleBody(
-          newInfo.body,
-          this.normalizeCategoryDirName(category.title),
-        );
-        try {
-          await this.removeSavedFile(this.urlToBodyPath(mainArticle.bodyUrl));
-        } catch (e) {}
-        mainArticle.bodyUrl = this.bodyPathToUrl(bodyPath);
-      }
+      await this.updateArticleBody(mainArticle.bodyUrl, newInfo.body);
     }
     if (!!newInfo.title) {
       mainArticle.title = newInfo.title.trim();
     }
+
+    return this.articlesRepository.save(mainArticle);
+  }
+
+  async publishArticle(
+    mainArticle: Article,
+    bannerUrl?: string | undefined,
+    category?: Category | undefined,
+  ): Promise<Article> {
     if (!!category) {
       mainArticle.category = category;
     }
@@ -125,11 +119,17 @@ export class ArticleService {
       if (!!mainArticle.bannerUrl) {
         try {
           await this.removeSavedFile(this.urlToBodyPath(mainArticle.bannerUrl));
-        } catch (e) {}
+        } catch (e) {
+        }
       }
       mainArticle.bannerUrl = this.bodyPathToUrl(bannerUrl);
     }
+    mainArticle.published = true;
     return this.articlesRepository.save(mainArticle);
+  }
+
+  async saveArticle(article: Article): Promise<Article> {
+    return this.articlesRepository.save(article);
   }
 
   async findArticleByTitle(title: string): Promise<Article> {
@@ -168,12 +168,14 @@ export class ArticleService {
     if (!!article?.bodyUrl) {
       try {
         await this.removeSavedFile(this.urlToBodyPath(article.bodyUrl));
-      } catch {}
+      } catch {
+      }
     }
     if (!!article?.bannerUrl) {
       try {
         await this.removeSavedFile(this.urlToBodyPath(article.bannerUrl));
-      } catch {}
+      } catch {
+      }
     }
     await this.articlesRepository.remove(article);
   }

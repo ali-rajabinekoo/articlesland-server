@@ -47,7 +47,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import {
   imageFileFilter,
   imageSize,
-  imageStorage,
+  avatarStorage,
 } from '../libs/file-uploading.utils';
 import * as bcrypt from 'bcrypt';
 
@@ -214,7 +214,7 @@ export class UserController {
   @Patch('avatar')
   @UseInterceptors(
     FileInterceptor('image', {
-      storage: imageStorage,
+      storage: avatarStorage,
       fileFilter: imageFileFilter,
       limits: { fileSize: imageSize },
     }),

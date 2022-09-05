@@ -14,6 +14,8 @@ import {
   ForbiddenException,
   BadRequestException,
   Delete,
+  Patch,
+  HttpCode,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -21,6 +23,7 @@ import {
   ApiBody,
   ApiConflictResponse,
   ApiConsumes,
+  ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
@@ -34,14 +37,19 @@ import { ArticleService } from './article.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Article } from './article.entity';
 import { RequestFormat } from '../user/user.dto';
-import { ArticleDto, EditArticleDto, NewArticleSchema } from './article.dto';
+import {
+  ArticleDto,
+  EditArticleDto,
+  NewArticleSchema,
+  PublishArticleDto, PublishArticleSchema,
+} from './article.dto';
 import { CategoryService } from '../category/category.service';
 import { Category } from '../category/category.entity';
 import { exceptionMessages, validationMessages } from '../libs/messages';
 import {
   imageFileFilter,
   imageSize,
-  imageStorage,
+  bannerStorage,
 } from '../libs/file-uploading.utils';
 import { join } from 'path';
 
@@ -61,27 +69,10 @@ export class ArticleController {
   ) {}
 
   @Post()
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: imageStorage,
-      fileFilter: imageFileFilter,
-      limits: { fileSize: imageSize },
-    }),
-  )
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    schema: NewArticleSchema,
-  })
-  @ApiOkResponse({
-    description: 'Avatar updated.',
+  @HttpCode(201)
+  @ApiCreatedResponse({
+    description: 'Article created.',
     type: Article,
-  })
-  @ApiBadRequestResponse({
-    description: [
-      'Banner is empty.',
-      'Banner should be jpg, jpeg, png.',
-      'Banner size should be lower then 2mb.',
-    ].join(' | '),
   })
   @ApiConflictResponse({
     description: 'Article already exists with this title.',
@@ -90,60 +81,22 @@ export class ArticleController {
   async createNewArticle(
     @Req() req: RequestFormat,
     @Body() body: ArticleDto,
-    @UploadedFile() file: Express.Multer.File,
   ): Promise<Article> {
-    try {
-      if (!file) {
-        throw new BadRequestException(validationMessages.empty.articleBanner);
-      }
-      const duplicatedArticle: Article =
-        await this.articleService.findArticleByTitle(body.title);
-      if (!!duplicatedArticle) {
-        throw new ConflictException(exceptionMessages.exist.articleTitle);
-      }
-      const category: Category = await this.categoryService.getArticleById(
-        Number(body.categoryId),
-      );
-      if (!category) {
-        throw new NotFoundException(exceptionMessages.notFound.category);
-      }
-      return this.articleService.addNewArticle(
-        body,
-        category,
-        req.user,
-        file.path,
-      );
-    } catch (e) {
-      try {
-        const filePath: string = join(__dirname, `../../${file?.path}`);
-        await this.articleService.removeSavedFile(filePath);
-      } catch {}
-      throw e;
+    const duplicatedArticle: Article =
+      await this.articleService.findArticleByTitle(body.title);
+    if (!!duplicatedArticle) {
+      throw new ConflictException(exceptionMessages.exist.articleTitle);
     }
+    return this.articleService.addNewArticle(body, req.user);
   }
 
   @Put('/:id')
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: imageStorage,
-      fileFilter: imageFileFilter,
-      limits: { fileSize: imageSize },
-    }),
-  )
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    schema: NewArticleSchema,
-  })
   @ApiOkResponse({
-    description: 'Avatar updated.',
+    description: 'Article updated.',
     type: Article,
   })
   @ApiBadRequestResponse({
-    description: [
-      'Banner should be jpg, jpeg, png.',
-      'Banner size should be lower then 2mb.',
-      'Id parameter required',
-    ].join(' | '),
+    description: ['Id parameter required'].join(' | '),
   })
   @ApiConflictResponse({
     description: 'Article already exists with this title.',
@@ -158,6 +111,61 @@ export class ArticleController {
     @Req() req: RequestFormat,
     @Body() body: EditArticleDto,
     @Param('id') id: number,
+  ): Promise<Article> {
+    const article: Article = await this.articleService.findArticleById(id);
+    if (!article) {
+      throw new NotFoundException(exceptionMessages.notFound.article);
+    }
+    if (article.owner.id !== req.user.id) {
+      throw new ForbiddenException(exceptionMessages.permission.main);
+    }
+    if (!!body.title && body.title.trim() !== article.title.trim()) {
+      const duplicatedArticle: Article =
+        await this.articleService.findArticleByTitle(body.title);
+      if (!!duplicatedArticle) {
+        throw new ConflictException(exceptionMessages.exist.articleTitle);
+      }
+    }
+    return this.articleService.updateArticle(article, body);
+  }
+
+  @Patch('/:id')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: bannerStorage,
+      fileFilter: imageFileFilter,
+      limits: { fileSize: imageSize },
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: PublishArticleSchema,
+  })
+  @ApiOkResponse({
+    description: 'Article published.',
+    type: Article,
+  })
+  @ApiBadRequestResponse({
+    description: [
+      'Article has empty banner.',
+      'Banner should be jpg, jpeg, png.',
+      'Banner size should be lower then 2mb.',
+      'Id parameter required',
+    ].join(' | '),
+  })
+  @ApiConflictResponse({
+    description: 'Article already exists with this title.',
+  })
+  @ApiNotFoundResponse({
+    description: ['Category not found.', 'Article not found.'].join(' | '),
+  })
+  @ApiForbiddenResponse({
+    description: "You don't have permission",
+  })
+  async saveAndPublishArticle(
+    @Req() req: RequestFormat,
+    @Body() body: PublishArticleDto,
+    @Param('id') id: number,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<Article> {
     try {
@@ -165,15 +173,11 @@ export class ArticleController {
       if (!article) {
         throw new NotFoundException(exceptionMessages.notFound.article);
       }
+      if (!article.bannerUrl && !file) {
+        throw new BadRequestException(validationMessages.empty.articleBanner);
+      }
       if (article.owner.id !== req.user.id) {
         throw new ForbiddenException(exceptionMessages.permission.main);
-      }
-      if (!!body.title && body.title.trim() !== article.title.trim()) {
-        const duplicatedArticle: Article =
-          await this.articleService.findArticleByTitle(body.title);
-        if (!!duplicatedArticle) {
-          throw new ConflictException(exceptionMessages.exist.articleTitle);
-        }
       }
       let category: Category;
       if (
@@ -187,12 +191,7 @@ export class ArticleController {
           throw new NotFoundException(exceptionMessages.notFound.category);
         }
       }
-      return this.articleService.updateArticle(
-        article,
-        body,
-        file?.path,
-        category,
-      );
+      return this.articleService.publishArticle(article, file?.path, category);
     } catch (e) {
       try {
         const filePath: string = join(__dirname, `../../${file?.path}`);
@@ -220,5 +219,55 @@ export class ArticleController {
       throw new ForbiddenException(exceptionMessages.permission.main);
     }
     await this.articleService.removeArticle(article);
+  }
+
+  @Post('publish/:id')
+  @ApiNotFoundResponse({ description: 'Article not found.' })
+  @ApiBadRequestResponse({ description: 'Id parameter required.' })
+  @ApiForbiddenResponse({
+    description: "You don't have permission",
+  })
+  @ApiOkResponse({
+    description: 'Article published.',
+    type: Article,
+  })
+  async publishArticle(
+    @Req() req: RequestFormat,
+    @Param('id') id: number,
+  ): Promise<Article> {
+    const article: Article = await this.articleService.findArticleById(id);
+    if (!article) {
+      throw new NotFoundException(exceptionMessages.notFound.article);
+    }
+    if (article.owner.id !== req.user.id) {
+      throw new ForbiddenException(exceptionMessages.permission.main);
+    }
+    article.published = true;
+    return this.articleService.saveArticle(article);
+  }
+
+  @Post('drop/:id')
+  @ApiNotFoundResponse({ description: 'Article not found.' })
+  @ApiBadRequestResponse({ description: 'Id parameter required.' })
+  @ApiForbiddenResponse({
+    description: "You don't have permission",
+  })
+  @ApiOkResponse({
+    description: 'Published article canceled.',
+    type: Article,
+  })
+  async dropArticle(
+    @Req() req: RequestFormat,
+    @Param('id') id: number,
+  ): Promise<Article> {
+    const article: Article = await this.articleService.findArticleById(id);
+    if (!article) {
+      throw new NotFoundException(exceptionMessages.notFound.article);
+    }
+    if (article.owner.id !== req.user.id) {
+      throw new ForbiddenException(exceptionMessages.permission.main);
+    }
+    article.published = false;
+    return this.articleService.saveArticle(article);
   }
 }
