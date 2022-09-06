@@ -27,6 +27,14 @@ export class Article {
   @Column({ unique: true })
   title: string;
 
+  @ApiProperty({
+    type: String,
+    default:
+      'Article title description. this field some first lines of article body',
+  })
+  @Column()
+  description: string;
+
   @ApiProperty({ type: String, default: '/article/article1.html' })
   @Column()
   bodyUrl: string;

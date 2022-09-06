@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Article } from './article.entity';
 import { Repository } from 'typeorm';
-import { ArticleDto, EditArticleDto, PublishArticleDto } from './article.dto';
+import { ArticleDto, EditArticleDto } from './article.dto';
 import * as fs from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidV4 } from 'uuid';
 import { Category } from '../category/category.entity';
 import { User } from '../user/user.entity';
+import { htmlToText } from 'html-to-text';
 
 @Injectable()
 export class ArticleService {
@@ -16,8 +17,7 @@ export class ArticleService {
   constructor(
     @InjectRepository(Article)
     private articlesRepository: Repository<Article>,
-  ) {
-  }
+  ) {}
 
   private generateArticleName(): string {
     return join(__dirname, `../../public/articles/${uuidV4()}.html`);
@@ -74,16 +74,13 @@ export class ArticleService {
     return join(__dirname, `../../${url.replace('/statics', 'public')}`);
   }
 
-  private normalizeCategoryDirName(title: string): string {
-    return title.split(' ').join('-').toLowerCase();
-  }
-
   async addNewArticle(fields: ArticleDto, owner: User): Promise<Article> {
     const bodyPath: string = await this.saveArticleBody(fields.body.trim());
     try {
       const newArticle: Article = await this.articlesRepository.create({
         title: fields.title.trim(),
         bodyUrl: this.bodyPathToUrl(bodyPath),
+        description: await htmlToText(fields.body),
         owner,
       });
       return await this.articlesRepository.save(newArticle);
@@ -99,6 +96,7 @@ export class ArticleService {
   ): Promise<Article> {
     if (!!newInfo.body) {
       await this.updateArticleBody(mainArticle.bodyUrl, newInfo.body);
+      mainArticle.description = await htmlToText(newInfo.body);
     }
     if (!!newInfo.title) {
       mainArticle.title = newInfo.title.trim();
@@ -119,8 +117,7 @@ export class ArticleService {
       if (!!mainArticle.bannerUrl) {
         try {
           await this.removeSavedFile(this.urlToBodyPath(mainArticle.bannerUrl));
-        } catch (e) {
-        }
+        } catch (e) {}
       }
       mainArticle.bannerUrl = this.bodyPathToUrl(bannerUrl);
     }
@@ -168,14 +165,12 @@ export class ArticleService {
     if (!!article?.bodyUrl) {
       try {
         await this.removeSavedFile(this.urlToBodyPath(article.bodyUrl));
-      } catch {
-      }
+      } catch {}
     }
     if (!!article?.bannerUrl) {
       try {
         await this.removeSavedFile(this.urlToBodyPath(article.bannerUrl));
-      } catch {
-      }
+      } catch {}
     }
     await this.articlesRepository.remove(article);
   }
