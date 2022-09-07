@@ -5,6 +5,7 @@ import {
   SchemaObject,
 } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
 import { ApiProperty } from '@nestjs/swagger';
+import { Article } from './article.entity';
 
 export class ArticleDto {
   @ApiProperty({
@@ -43,30 +44,9 @@ export class PublishArticleDto {
   categoryId: number;
 }
 
-export const NewArticleSchema: SchemaObject | ReferenceObject = {
-  type: 'object',
-  properties: {
-    image: {
-      type: 'string',
-      format: 'binary',
-    },
-    title: {
-      type: 'string',
-      default: 'برنامه نویسی جاوااسکریپت',
-      description: 'Article title',
-    },
-    body: {
-      type: 'string',
-      default: '<p>برنامه نویسی جاوااسکریپت</p>',
-      description: 'Article body',
-    },
-    categoryId: {
-      type: 'number',
-      default: 1,
-      description: 'Article category id. Positive integer',
-    },
-  },
-};
+export class GetArticleResponse extends Article {
+  body?: string | undefined;
+}
 
 export const PublishArticleSchema: SchemaObject | ReferenceObject = {
   type: 'object',

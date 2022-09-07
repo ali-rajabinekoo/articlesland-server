@@ -62,6 +62,11 @@ export class ArticleService {
     await fs.writeFile(filePath, body, 'utf8');
   }
 
+  async fetchArticleBody(url: string): Promise<string> {
+    const filePath: string = this.urlToBodyPath(url);
+    return await fs.readFile(filePath, 'utf8');
+  }
+
   async removeSavedFile(bodyPath: string): Promise<void> {
     await fs.unlink(bodyPath);
   }
@@ -74,13 +79,17 @@ export class ArticleService {
     return join(__dirname, `../../${url.replace('/statics', 'public')}`);
   }
 
+  private formatDescription(description: string): string {
+    return htmlToText(description).slice(0, 300);
+  }
+
   async addNewArticle(fields: ArticleDto, owner: User): Promise<Article> {
     const bodyPath: string = await this.saveArticleBody(fields.body.trim());
     try {
       const newArticle: Article = await this.articlesRepository.create({
         title: fields.title.trim(),
         bodyUrl: this.bodyPathToUrl(bodyPath),
-        description: await htmlToText(fields.body),
+        description: this.formatDescription(fields.body.trim()),
         owner,
       });
       return await this.articlesRepository.save(newArticle);
@@ -96,7 +105,7 @@ export class ArticleService {
   ): Promise<Article> {
     if (!!newInfo.body) {
       await this.updateArticleBody(mainArticle.bodyUrl, newInfo.body);
-      mainArticle.description = await htmlToText(newInfo.body);
+      mainArticle.description = this.formatDescription(newInfo.body.trim());
     }
     if (!!newInfo.title) {
       mainArticle.title = newInfo.title.trim();

@@ -13,6 +13,7 @@ import {
   UseInterceptors,
   ForbiddenException,
   BadRequestException,
+  Get,
   Delete,
   Patch,
   HttpCode,
@@ -40,8 +41,9 @@ import { RequestFormat } from '../user/user.dto';
 import {
   ArticleDto,
   EditArticleDto,
-  NewArticleSchema,
-  PublishArticleDto, PublishArticleSchema,
+  GetArticleResponse,
+  PublishArticleDto,
+  PublishArticleSchema,
 } from './article.dto';
 import { CategoryService } from '../category/category.service';
 import { Category } from '../category/category.entity';
@@ -67,6 +69,25 @@ export class ArticleController {
     private articleService: ArticleService,
     private categoryService: CategoryService,
   ) {}
+
+  @Get(':id')
+  @ApiCreatedResponse({
+    description: 'Returns article.',
+    type: Article,
+  })
+  @ApiNotFoundResponse({ description: 'Article not found.' })
+  async getArticle(
+    @Req() req: RequestFormat,
+    @Param('id') id: number,
+  ): Promise<GetArticleResponse> {
+    const article: Article = await this.articleService.findArticleById(id);
+    if (!article) {
+      throw new NotFoundException(exceptionMessages.notFound.article);
+    }
+    const response: GetArticleResponse = article as GetArticleResponse;
+    response.body = await this.articleService.fetchArticleBody(article.bodyUrl);
+    return response;
+  }
 
   @Post()
   @HttpCode(201)
@@ -111,7 +132,7 @@ export class ArticleController {
     @Req() req: RequestFormat,
     @Body() body: EditArticleDto,
     @Param('id') id: number,
-  ): Promise<Article> {
+  ): Promise<GetArticleResponse> {
     const article: Article = await this.articleService.findArticleById(id);
     if (!article) {
       throw new NotFoundException(exceptionMessages.notFound.article);
@@ -122,11 +143,14 @@ export class ArticleController {
     if (!!body.title && body.title.trim() !== article.title.trim()) {
       const duplicatedArticle: Article =
         await this.articleService.findArticleByTitle(body.title);
-      if (!!duplicatedArticle) {
+      if (!!duplicatedArticle && Number(duplicatedArticle.id) !== Number(id)) {
         throw new ConflictException(exceptionMessages.exist.articleTitle);
       }
     }
-    return this.articleService.updateArticle(article, body);
+    const response: GetArticleResponse =
+      await this.articleService.updateArticle(article, body);
+    response.body = await this.articleService.fetchArticleBody(article.bodyUrl);
+    return response;
   }
 
   @Patch('/:id')
@@ -182,7 +206,9 @@ export class ArticleController {
       let category: Category;
       if (
         !!body.categoryId &&
-        Number(body.categoryId) !== article.category.id
+        !!article?.category?.id &&
+        !!body?.categoryId &&
+        Number(body?.categoryId) !== article?.category?.id
       ) {
         category = await this.categoryService.getArticleById(
           Number(body.categoryId),
