@@ -56,10 +56,8 @@ import {
 import { join } from 'path';
 
 @Controller('article')
-@ApiBearerAuth()
 @ApiTags('article')
 @UseInterceptors(ClassSerializerInterceptor)
-@UseGuards(JwtAuthGuard)
 @ApiUnauthorizedResponse({ description: 'Unauthorized', type: UnauthorizedDto })
 @ApiInternalServerErrorResponse({
   description: 'Internal server error',
@@ -76,10 +74,7 @@ export class ArticleController {
     type: Article,
   })
   @ApiNotFoundResponse({ description: 'Article not found.' })
-  async getArticle(
-    @Req() req: RequestFormat,
-    @Param('id') id: number,
-  ): Promise<GetArticleResponse> {
+  async getArticle(@Param('id') id: number): Promise<GetArticleResponse> {
     const article: Article = await this.articleService.findArticleById(id);
     if (!article) {
       throw new NotFoundException(exceptionMessages.notFound.article);
@@ -91,6 +86,8 @@ export class ArticleController {
 
   @Post()
   @HttpCode(201)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
     description: 'Article created.',
     type: Article,
@@ -112,6 +109,8 @@ export class ArticleController {
   }
 
   @Put('/:id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     description: 'Article updated.',
     type: Article,
@@ -154,6 +153,8 @@ export class ArticleController {
   }
 
   @Patch('/:id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('image', {
       storage: bannerStorage,
@@ -228,6 +229,8 @@ export class ArticleController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiNotFoundResponse({ description: 'Article not found.' })
   @ApiBadRequestResponse({ description: 'Id parameter required.' })
   @ApiForbiddenResponse({
@@ -248,6 +251,8 @@ export class ArticleController {
   }
 
   @Post('publish/:id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiNotFoundResponse({ description: 'Article not found.' })
   @ApiBadRequestResponse({ description: 'Id parameter required.' })
   @ApiForbiddenResponse({
@@ -273,6 +278,8 @@ export class ArticleController {
   }
 
   @Post('drop/:id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiNotFoundResponse({ description: 'Article not found.' })
   @ApiBadRequestResponse({ description: 'Id parameter required.' })
   @ApiForbiddenResponse({
