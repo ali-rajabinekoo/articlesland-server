@@ -53,6 +53,7 @@ export class UserService {
       where: { id },
       relations: [
         'articles',
+        'articles.category',
         'followers',
         'following',
         'reports',
