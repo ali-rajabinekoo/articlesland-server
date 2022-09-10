@@ -46,7 +46,6 @@ import {
   PublishArticleSchema,
 } from './article.dto';
 import { CategoryService } from '../category/category.service';
-import { Category } from '../category/category.entity';
 import { exceptionMessages, validationMessages } from '../libs/messages';
 import {
   imageFileFilter,
@@ -195,29 +194,25 @@ export class ArticleController {
   ): Promise<Article> {
     try {
       const article: Article = await this.articleService.findArticleById(id);
-      if (!article) {
-        throw new NotFoundException(exceptionMessages.notFound.article);
-      }
-      if (!article.bannerUrl && !file) {
-        throw new BadRequestException(validationMessages.empty.articleBanner);
-      }
-      if (article.owner.id !== req.user.id) {
-        throw new ForbiddenException(exceptionMessages.permission.main);
-      }
-      let category: Category;
-      if (
-        !!body.categoryId &&
-        !!article?.category?.id &&
-        !!body?.categoryId &&
-        Number(body?.categoryId) !== article?.category?.id
-      ) {
-        category = await this.categoryService.getArticleById(
-          Number(body.categoryId),
-        );
+      (() => {
+        if (!article) {
+          throw new NotFoundException(exceptionMessages.notFound.article);
+        }
+        if (!article.bannerUrl && !file) {
+          throw new BadRequestException(validationMessages.empty.articleBanner);
+        }
+        if (article.owner.id !== req.user.id) {
+          throw new ForbiddenException(exceptionMessages.permission.main);
+        }
+      })();
+      const category = await this.categoryService.getArticleById(
+        Number(body.categoryId),
+      );
+      (() => {
         if (!category) {
           throw new NotFoundException(exceptionMessages.notFound.category);
         }
-      }
+      })();
       return this.articleService.publishArticle(article, file?.path, category);
     } catch (e) {
       try {

@@ -57,12 +57,7 @@ export class RegisterNewUserDto {
     default: '1379rajabi',
     description: 'Password',
     minLength: 8,
-    examples: [
-      'lowercase letter',
-      'uppercase letter',
-      'special character',
-      'number',
-    ],
+    examples: ['lowercase or uppercase letter', 'number'],
   })
   @Exclude({ toPlainOnly: true })
   @IsNotEmpty({ message: validationMessages.empty.password })

@@ -41,6 +41,7 @@ export class EditArticleDto {
 
 export class PublishArticleDto {
   @IsNumberString({}, { message: validationMessages.empty.categoryId })
+  @IsNotEmpty({ message: validationMessages.empty.categoryId })
   categoryId: number;
 }
 

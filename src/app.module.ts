@@ -41,7 +41,7 @@ export const AppModuleMetadata = {
         Follow,
       ],
       synchronize: true,
-      timezone: 'fa',
+      timezone: 'Asia/Tehran',
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
