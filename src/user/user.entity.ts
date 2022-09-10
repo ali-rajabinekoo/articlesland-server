@@ -6,6 +6,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  ManyToMany,
+  JoinTable,
   Relation,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
@@ -16,6 +18,7 @@ import { Report } from '../report/report.entity';
 import { Like } from '../like/like.entity';
 import { Bookmark } from '../bookmark/bookmark.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { Category } from '../category/category.entity';
 
 @Entity('user')
 export class User {
@@ -128,6 +131,14 @@ export class User {
     onUpdate: 'CASCADE',
   })
   bookmarks: Relation<Bookmark[]>;
+
+  @ApiProperty({ type: [Article] })
+  @ManyToMany(() => Category, (category) => category.id, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  @JoinTable({ name: 'user_categories' })
+  selectedCategories: Relation<Category[]>;
 
   @BeforeInsert()
   async hashPassword() {
