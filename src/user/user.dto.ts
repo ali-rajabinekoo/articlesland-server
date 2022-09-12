@@ -139,7 +139,7 @@ export class SendEmailVerificationCodeDto {
     default: 'ali.rajabinekoo@protonmail.com',
     description: 'Valid email address',
   })
-  @IsNotEmpty({ message: validationMessages.empty.phoneNumber })
+  @IsNotEmpty({ message: validationMessages.empty.email })
   @IsEmail({}, { message: validationMessages.invalid.phoneNumber })
   email: string;
 }

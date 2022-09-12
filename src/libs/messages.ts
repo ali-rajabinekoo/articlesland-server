@@ -4,6 +4,7 @@ export const validationMessages = {
     password: 'رمز عبور الزامیست',
     repeatPassword: 'تکرار رمز عبور الزامیست',
     phoneNumber: 'شماره موبایل الزامیست',
+    email: 'آدرس ایمیل الزامیست',
     code: 'کد یکبار مصرف الزامیست',
     articleTitle: 'عنوان برای پست الزامیست',
     articleBody: 'متن بدنه برای پست الزامیست',
@@ -22,6 +23,7 @@ export const validationMessages = {
   invalid: {
     username: 'نام کاربری شامل حروف انگلیسی و اعداد می باشد',
     phoneNumber: 'شماره موبایل وارد شده معتبر نیست',
+    email: 'آدرس ایمیل وارد شده معتبر نیست',
     code: 'کد یکبار مصرف معتبر نیست',
     password: 'رمزعبور باید حداقل شامل حروف و عدد به طول ۸ کاراکتر باشد',
     repeatPassword: 'رمز عبور و تکرار آن با هم برار نیستند',

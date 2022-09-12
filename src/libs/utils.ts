@@ -99,6 +99,7 @@ class Utils {
     const mobile: string = await this.keyvClient.get(`mobile-${userId}`);
     await this.keyvClient.delete(code);
     await this.keyvClient.delete(`mobile-${userId}`);
+    await this.keyvClient.delete(mobile);
     return { userId, mobile };
   }
 
