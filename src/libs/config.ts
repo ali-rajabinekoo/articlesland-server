@@ -8,15 +8,17 @@ export const mellipayamak = {
 };
 
 export const database = {
-  dbname: 'articlesland',
+  dbname: process.env.MYSQL_DATABASE || 'articlesland',
   dbnameTest: 'articleslandTest',
-  host: 'localhost',
-  port: 3306,
+  host: process.env.MYSQL_HOST || 'localhost',
+  port: Number(process.env.MYSQL_TCP_PORT) || 3306,
   username: 'root',
-  password: 'test',
-  keyv: 'mysql://root:test@localhost:3306/articlesland',
+  password: process.env.MYSQL_ROOT_PASSWORD || 'test',
+  keyv: process.env.MYSQL_KEY_VALUE_DATABASE_URL || 'mysql://root:test@localhost:3306/articlesland',
   keyvTest: 'mysql://root:test@localhost:3306/articleslandTest',
 };
+
+export const rabbitmqUrl: string = process.env.AMQP_URL || 'amqp://localhost:5672'
 
 export const jwtConfig = {
   secret: '953ef985e05a7adcd0a3d5d4f141828059667aa7',

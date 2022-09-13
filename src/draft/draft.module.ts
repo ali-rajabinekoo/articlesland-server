@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { DraftController } from './draft.controller';
 import { DraftService } from './draft.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { rabbitmqUrl } from '../libs/config';
 
 @Module({
   imports: [
@@ -10,7 +11,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         name: 'MATH_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: [process.env.AMQP_URL || 'amqp://localhost:5672'],
+          urls: [rabbitmqUrl],
           queue: 'drafts_queue',
         },
       },
