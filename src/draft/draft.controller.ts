@@ -3,7 +3,7 @@ import {
   ClassSerializerInterceptor,
   Controller,
   Delete,
-  Get,
+  Get, NotFoundException,
   Param,
   Post,
   Req,
@@ -11,11 +11,13 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { DraftService } from './draft.service';
-import { ArticleDto } from '../article/article.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RequestFormat } from '../user/user.dto';
-import { DraftDto } from './draft.dto';
+import { DraftDto, DraftReqDto } from './draft.dto';
+import { ArticleService } from '../article/article.service';
+import { Article } from '../article/article.entity';
+import { exceptionMessages } from '../libs/messages';
 
 @Controller('draft')
 @ApiTags('draft')
@@ -23,19 +25,46 @@ import { DraftDto } from './draft.dto';
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class DraftController {
-  constructor(private readonly draftService: DraftService) {}
+  constructor(private readonly draftService: DraftService, private readonly articleService: ArticleService) {
+  }
 
-  @Post('/save')
-  async saveDraft(@Body() fields: ArticleDto, @Req() req: RequestFormat) {
+  @Post('/:articleId')
+  async saveDraft(
+    @Param('articleId') articleId: number,
+    @Body() fields: DraftReqDto,
+    @Req() req: RequestFormat,
+  ) {
+    const article: Article = await this.articleService.findArticleById(articleId);
+    if (!article) {
+      throw new NotFoundException(exceptionMessages.notFound.article);
+    }
     const draft: DraftDto = new DraftDto();
+    draft.articleId = articleId;
     draft.userId = req.user.id;
     draft.body = fields.body;
-    draft.title = fields.title;
+    if (!!fields.title) draft.title = fields.title;
     return this.draftService.saveDraft(draft);
   }
 
+  @Post()
+  async saveNewArticleDraft(
+    @Body() fields: DraftReqDto,
+    @Req() req: RequestFormat,
+  ) {
+    const draft: DraftDto = new DraftDto();
+    draft.userId = req.user.id;
+    draft.body = fields.body;
+    if (!!fields.title) draft.title = fields.title;
+    return this.draftService.saveDraft(draft);
+  }
+
+  @Get('/:articleId')
+  async getArticleDrafts(@Param('articleId') articleId: number, @Req() req: RequestFormat) {
+    return this.draftService.getUserDrafts(req.user.id, articleId);
+  }
+
   @Get()
-  async getHelloAsync(@Req() req: RequestFormat) {
+  async getNewArticleDrafts(@Req() req: RequestFormat) {
     return this.draftService.getUserDrafts(req.user.id);
   }
 

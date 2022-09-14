@@ -80,7 +80,7 @@ export class ArticleService {
   }
 
   private formatDescription(description: string): string {
-    return htmlToText(description).slice(0, 300);
+    return htmlToText(description).slice(0, 200);
   }
 
   async addNewArticle(fields: ArticleDto, owner: User): Promise<Article> {
