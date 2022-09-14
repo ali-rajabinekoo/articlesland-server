@@ -20,6 +20,7 @@ import { FollowModule } from './follow/follow.module';
 import { Follow } from './follow/follow.entity';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { DraftModule } from './draft/draft.module';
 
 export const AppModuleMetadata = {
   imports: [
@@ -56,6 +57,7 @@ export const AppModuleMetadata = {
     BookmarkModule,
     ReportModule,
     FollowModule,
+    DraftModule,
   ],
 };
 

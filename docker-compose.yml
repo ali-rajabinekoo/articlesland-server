@@ -1,0 +1,63 @@
+version: '3.8'
+services:
+  rabbitmq:
+    image: rabbitmq:3.10-management-alpine
+    container_name: 'articlesLand_rabbitmq'
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - app-network
+      - articlesLand-microservice-network
+    logging:
+      driver: none
+
+  main_db:
+    image: mariadb
+    container_name: 'articlesLand_main_database'
+    restart: on-failure
+    networks:
+      - app-network
+    logging:
+      driver: none
+    volumes:
+      - ~/.docker-data/articlesLand/mariadb:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_TCP_PORT: 3306
+      MYSQL_ROOT_PASSWORD: 1379rajabi
+      MYSQL_DATABASE: articlesland
+
+  server:
+    container_name: 'articlesLand_main_service'
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      target: dev
+    volumes:
+      - /app/node_modules
+      - ./:/app
+    depends_on:
+      - "rabbitmq"
+      - "main_db"
+    ports:
+      - "8080:8080"
+    command: sh -c '/bin/wait-for-it.sh rabbitmq:5672 --timeout=30 -- npm run start:dev'
+    environment:
+      NODE_ENV: production
+      AMQP_URL: amqp://rabbitmq:5672
+      MYSQL_TCP_PORT: 3306
+      MYSQL_HOST: main_db
+      MYSQL_ROOT_PASSWORD: 1379rajabi
+      MYSQL_DATABASE: articlesland
+      MYSQL_KEY_VALUE_DATABASE_URL: mysql://root:1379rajabi@main_db:3306/articlesland
+    networks:
+      - app-network
+      - articlesLand-microservice-network
+
+networks:
+  app-network:
+    driver: bridge
+  articlesLand-microservice-network:
+    external: true
