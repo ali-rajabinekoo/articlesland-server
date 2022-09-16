@@ -205,7 +205,7 @@ export class ArticleController {
           throw new ForbiddenException(exceptionMessages.permission.main);
         }
       })();
-      const category = await this.categoryService.getArticleById(
+      const category = await this.categoryService.getCategoryById(
         Number(body.categoryId),
       );
       (() => {

@@ -19,6 +19,7 @@ export const validationMessages = {
     bioLong: 'متن معرفی شما باید حداکثر شامل ۱۵۰ حرف باشد',
     displayNameShort: 'نام نمایشی شما باید حداقل شامل ۴ حرف باشد',
     displayNameLong: 'نام نمایشی شما باید حداکثر شامل ۵۰ حرف باشد',
+    selectedCategories: 'حداقل یک مورد از لیست ها باید انتخاب شده باشد',
   },
   invalid: {
     username: 'نام کاربری شامل حروف انگلیسی و اعداد می باشد',

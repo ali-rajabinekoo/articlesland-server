@@ -132,7 +132,7 @@ export class User {
   })
   bookmarks: Relation<Bookmark[]>;
 
-  @ApiProperty({ type: [Article] })
+  @ApiProperty({ type: [Category] })
   @ManyToMany(() => Category, (category) => category.id, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
