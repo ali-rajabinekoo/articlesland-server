@@ -3,7 +3,8 @@ import {
   ClassSerializerInterceptor,
   Controller,
   Delete,
-  Get, NotFoundException,
+  Get,
+  NotFoundException,
   Param,
   Post,
   Req,
@@ -25,8 +26,10 @@ import { exceptionMessages } from '../libs/messages';
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class DraftController {
-  constructor(private readonly draftService: DraftService, private readonly articleService: ArticleService) {
-  }
+  constructor(
+    private readonly draftService: DraftService,
+    private readonly articleService: ArticleService,
+  ) {}
 
   @Post('/:articleId')
   async saveDraft(
@@ -34,7 +37,9 @@ export class DraftController {
     @Body() fields: DraftReqDto,
     @Req() req: RequestFormat,
   ) {
-    const article: Article = await this.articleService.findArticleById(articleId);
+    const article: Article = await this.articleService.findArticleById(
+      articleId,
+    );
     if (!article) {
       throw new NotFoundException(exceptionMessages.notFound.article);
     }
@@ -59,7 +64,10 @@ export class DraftController {
   }
 
   @Get('/:articleId')
-  async getArticleDrafts(@Param('articleId') articleId: number, @Req() req: RequestFormat) {
+  async getArticleDrafts(
+    @Param('articleId') articleId: number,
+    @Req() req: RequestFormat,
+  ) {
     return this.draftService.getUserDrafts(req.user.id, articleId);
   }
 

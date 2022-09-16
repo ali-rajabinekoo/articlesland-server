@@ -59,6 +59,7 @@ export class UserService {
         'reports',
         'likes',
         'bookmarks',
+        'selectedCategories',
       ],
     });
   }
@@ -73,6 +74,7 @@ export class UserService {
         'reports',
         'likes',
         'bookmarks',
+        'selectedCategories',
       ],
     });
   }
