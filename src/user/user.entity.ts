@@ -54,6 +54,10 @@ export class User {
   @Column({ default: null })
   bio: string;
 
+  @ApiProperty({ type: String, default: 'User refresh token' })
+  @Column({ unique: true, default: null })
+  refreshToken: string;
+
   @Column({ default: false })
   @Exclude({ toPlainOnly: true })
   activated: boolean;

@@ -79,6 +79,21 @@ export class UserService {
     });
   }
 
+  async findUserByRefreshToken(refreshToken: string): Promise<User> {
+    return this.usersRepository.findOne({
+      where: { refreshToken },
+      relations: [
+        'articles',
+        'followers',
+        'following',
+        'reports',
+        'likes',
+        'bookmarks',
+        'selectedCategories',
+      ],
+    });
+  }
+
   async verifyUser(user: User): Promise<void> {
     user.activated = true;
     await this.usersRepository.save(user);

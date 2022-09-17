@@ -3,6 +3,7 @@ export const validationMessages = {
     username: 'نام کاربری الزامیست',
     password: 'رمز عبور الزامیست',
     repeatPassword: 'تکرار رمز عبور الزامیست',
+    refreshToken: 'توکن بازیابی الزامیست',
     phoneNumber: 'شماره موبایل الزامیست',
     email: 'آدرس ایمیل الزامیست',
     code: 'کد یکبار مصرف الزامیست',
