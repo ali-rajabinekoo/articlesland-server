@@ -17,7 +17,7 @@ import {
   LoginByCredentialDto,
   RegisterNewUserDto,
   SendLoginCodeDto,
-  UserUniqueInfoDto,
+  UserUniqueInfoDto, LoginByRefreshTokenDto,
 } from '../user/user.dto';
 import { UserService } from '../user/user.service';
 import { User } from '../user/user.entity';
@@ -47,7 +47,8 @@ export class AuthController {
   constructor(
     private userService: UserService,
     private authService: AuthService,
-  ) {}
+  ) {
+  }
 
   @Post('register')
   @HttpCode(201)
@@ -126,6 +127,13 @@ export class AuthController {
       throw new NotFoundException(exceptionMessages.notFound.user);
     }
     await utils.removeVerifyOpportunity(user.phoneNumber);
+    let refreshToken: string = await this.authService.login(user);
+    let duplicatedUser: User = await this.userService.findUserByRefreshToken(refreshToken);
+    while (!!duplicatedUser) {
+      refreshToken = await this.authService.login(user);
+      duplicatedUser = await this.userService.findUserByRefreshToken(refreshToken);
+    }
+    user.refreshToken = refreshToken
     await this.userService.verifyUser(user);
     return {
       user: await this.userService.findUserById(user.id),
@@ -143,6 +151,25 @@ export class AuthController {
   @ApiNotFoundResponse({ description: 'User not found.' })
   async login(@Body() userInfo: LoginByCredentialDto): Promise<AuthLoginDto> {
     const user: User = await this.userService.findUserByCredential(userInfo);
+    if (!user || !user.activated) {
+      throw new NotFoundException(exceptionMessages.notFound.user);
+    }
+    return {
+      user: await this.userService.findUserById(user.id),
+      token: await this.authService.login(user),
+    };
+  }
+
+  @Post('login/refreshToken')
+  @HttpCode(200)
+  @ApiOkResponse({
+    description: 'The user has been successfully logged in.',
+    type: AuthLoginDto,
+  })
+  @ApiBadRequestResponse({ description: 'Empty inputs.' })
+  @ApiNotFoundResponse({ description: 'User not found.' })
+  async loginByRefreshToken(@Body() { refreshToken }: LoginByRefreshTokenDto): Promise<AuthLoginDto> {
+    const user: User = await this.userService.findUserByRefreshToken(refreshToken);
     if (!user || !user.activated) {
       throw new NotFoundException(exceptionMessages.notFound.user);
     }

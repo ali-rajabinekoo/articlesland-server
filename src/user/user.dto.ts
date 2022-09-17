@@ -72,6 +72,12 @@ export class RegisterNewUserDto {
   repeatPassword: string;
 }
 
+export class LoginByRefreshTokenDto {
+  @ApiProperty({ default: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ey...', description: 'RefreshToken' })
+  @IsNotEmpty({ message: validationMessages.empty.refreshToken })
+  refreshToken: string;
+}
+
 export class LoginByCredentialDto {
   @ApiProperty({ default: 'articlesLandUser', description: 'Username' })
   @IsNotEmpty({ message: validationMessages.empty.username })
