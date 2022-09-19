@@ -24,6 +24,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);
 
+  process.env.TZ = 'Asia/Tehran';
+
   clearingKeyvScheduler.start();
   await app.listen(8080);
 }

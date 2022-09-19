@@ -17,7 +17,8 @@ import {
   LoginByCredentialDto,
   RegisterNewUserDto,
   SendLoginCodeDto,
-  UserUniqueInfoDto, LoginByRefreshTokenDto,
+  UserUniqueInfoDto,
+  LoginByRefreshTokenDto,
 } from '../user/user.dto';
 import { UserService } from '../user/user.service';
 import { User } from '../user/user.entity';
@@ -47,8 +48,7 @@ export class AuthController {
   constructor(
     private userService: UserService,
     private authService: AuthService,
-  ) {
-  }
+  ) {}
 
   @Post('register')
   @HttpCode(201)
@@ -128,12 +128,16 @@ export class AuthController {
     }
     await utils.removeVerifyOpportunity(user.phoneNumber);
     let refreshToken: string = await this.authService.login(user);
-    let duplicatedUser: User = await this.userService.findUserByRefreshToken(refreshToken);
+    let duplicatedUser: User = await this.userService.findUserByRefreshToken(
+      refreshToken,
+    );
     while (!!duplicatedUser) {
       refreshToken = await this.authService.login(user);
-      duplicatedUser = await this.userService.findUserByRefreshToken(refreshToken);
+      duplicatedUser = await this.userService.findUserByRefreshToken(
+        refreshToken,
+      );
     }
-    user.refreshToken = refreshToken
+    user.refreshToken = refreshToken;
     await this.userService.verifyUser(user);
     return {
       user: await this.userService.findUserById(user.id),
@@ -168,8 +172,12 @@ export class AuthController {
   })
   @ApiBadRequestResponse({ description: 'Empty inputs.' })
   @ApiNotFoundResponse({ description: 'User not found.' })
-  async loginByRefreshToken(@Body() { refreshToken }: LoginByRefreshTokenDto): Promise<AuthLoginDto> {
-    const user: User = await this.userService.findUserByRefreshToken(refreshToken);
+  async loginByRefreshToken(
+    @Body() { refreshToken }: LoginByRefreshTokenDto,
+  ): Promise<AuthLoginDto> {
+    const user: User = await this.userService.findUserByRefreshToken(
+      refreshToken,
+    );
     if (!user || !user.activated) {
       throw new NotFoundException(exceptionMessages.notFound.user);
     }

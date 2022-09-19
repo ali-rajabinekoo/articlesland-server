@@ -73,7 +73,10 @@ export class RegisterNewUserDto {
 }
 
 export class LoginByRefreshTokenDto {
-  @ApiProperty({ default: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ey...', description: 'RefreshToken' })
+  @ApiProperty({
+    default: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ey...',
+    description: 'RefreshToken',
+  })
   @IsNotEmpty({ message: validationMessages.empty.refreshToken })
   refreshToken: string;
 }

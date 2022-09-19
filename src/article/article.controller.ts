@@ -67,15 +67,39 @@ export class ArticleController {
     private categoryService: CategoryService,
   ) {}
 
-  @Get(':id')
+  @Get('/public/:username/:id')
   @ApiCreatedResponse({
     description: 'Returns article.',
     type: Article,
   })
   @ApiNotFoundResponse({ description: 'Article not found.' })
-  async getArticle(@Param('id') id: number): Promise<GetArticleResponse> {
+  async getArticleForOtherUsers(
+    @Param('id') id: number,
+    @Param('username') username: string,
+  ): Promise<GetArticleResponse> {
     const article: Article = await this.articleService.findArticleById(id);
-    if (!article) {
+    if (!article || !article.published || article.owner.username !== username) {
+      throw new NotFoundException(exceptionMessages.notFound.article);
+    }
+    const response: GetArticleResponse = article as GetArticleResponse;
+    response.body = await this.articleService.fetchArticleBody(article.bodyUrl);
+    return article;
+  }
+
+  @Get(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    description: 'Returns article.',
+    type: Article,
+  })
+  @ApiNotFoundResponse({ description: 'Article not found.' })
+  async getArticle(
+    @Req() req: RequestFormat,
+    @Param('id') id: number,
+  ): Promise<GetArticleResponse> {
+    const article: Article = await this.articleService.findArticleById(id);
+    if (!article || article.owner.id !== req.user.id) {
       throw new NotFoundException(exceptionMessages.notFound.article);
     }
     const response: GetArticleResponse = article as GetArticleResponse;
@@ -245,32 +269,32 @@ export class ArticleController {
     await this.articleService.removeArticle(article);
   }
 
-  @Post('publish/:id')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @ApiNotFoundResponse({ description: 'Article not found.' })
-  @ApiBadRequestResponse({ description: 'Id parameter required.' })
-  @ApiForbiddenResponse({
-    description: "You don't have permission",
-  })
-  @ApiOkResponse({
-    description: 'Article published.',
-    type: Article,
-  })
-  async publishArticle(
-    @Req() req: RequestFormat,
-    @Param('id') id: number,
-  ): Promise<Article> {
-    const article: Article = await this.articleService.findArticleById(id);
-    if (!article) {
-      throw new NotFoundException(exceptionMessages.notFound.article);
-    }
-    if (article.owner.id !== req.user.id) {
-      throw new ForbiddenException(exceptionMessages.permission.main);
-    }
-    article.published = true;
-    return this.articleService.saveArticle(article);
-  }
+  // @Post('publish/:id')
+  // @ApiBearerAuth()
+  // @UseGuards(JwtAuthGuard)
+  // @ApiNotFoundResponse({ description: 'Article not found.' })
+  // @ApiBadRequestResponse({ description: 'Id parameter required.' })
+  // @ApiForbiddenResponse({
+  //   description: "You don't have permission",
+  // })
+  // @ApiOkResponse({
+  //   description: 'Article published.',
+  //   type: Article,
+  // })
+  // async publishArticle(
+  //   @Req() req: RequestFormat,
+  //   @Param('id') id: number,
+  // ): Promise<Article> {
+  //   const article: Article = await this.articleService.findArticleById(id);
+  //   if (!article) {
+  //     throw new NotFoundException(exceptionMessages.notFound.article);
+  //   }
+  //   if (article.owner.id !== req.user.id) {
+  //     throw new ForbiddenException(exceptionMessages.permission.main);
+  //   }
+  //   article.published = true;
+  //   return this.articleService.saveArticle(article);
+  // }
 
   @Post('drop/:id')
   @ApiBearerAuth()
