@@ -16,6 +16,7 @@ import { Like } from '../like/like.entity';
 import { Bookmark } from '../bookmark/bookmark.entity';
 import { Comment } from '../comment/comment.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { Exclude } from 'class-transformer';
 
 @Entity('article')
 export class Article {
@@ -36,6 +37,7 @@ export class Article {
   description: string;
 
   @ApiProperty({ type: String, default: '/article/article1.html' })
+  @Exclude({ toPlainOnly: true })
   @Column()
   bodyUrl: string;
 

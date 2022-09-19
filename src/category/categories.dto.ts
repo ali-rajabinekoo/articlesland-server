@@ -8,6 +8,6 @@ export class SelectedCategoriesDto {
     description: 'Pass categories id to set them for user',
   })
   @IsArray()
-  @ArrayMinSize(1, {message: validationMessages.length.selectedCategories})
+  @ArrayMinSize(1, { message: validationMessages.length.selectedCategories })
   list: number[];
 }
