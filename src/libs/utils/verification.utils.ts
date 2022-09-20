@@ -1,20 +1,21 @@
-import { User } from '../user/user.entity';
 import * as Keyv from 'keyv';
-import { v4 as uuidV4 } from 'uuid';
 import {
   codeExpire,
   database,
   emailCodeExpire,
   nodemailerConfig,
-} from './config';
-import * as nodemailer from 'nodemailer';
-import { NodemailerOptionsDto } from './schemas';
+} from '../config';
 import { Transporter } from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import * as nodemailer from 'nodemailer';
+import { User } from '../../user/user.entity';
+import { NodemailerOptionsDto } from '../schemas';
+import { v4 as uuidV4 } from 'uuid';
 
-class Utils {
-  private keyvClient = new Keyv(
+export class Verification {
+  private keyValueClient = new Keyv(
     process.env.NODE_ENV === 'test' ? database.keyvTest : database.keyv,
+    { namespace: 'verification' },
   );
   private nodeMailerTransport: Transporter<SMTPTransport.SentMessageInfo>;
 
@@ -52,26 +53,26 @@ class Utils {
     let code: string = this.makeCode();
     if (isTest) code = '111111';
     let uniqueKey: string = uuidV4();
-    while ((await this.keyvClient.get(code)) && !isTest) {
+    while ((await this.keyValueClient.get(code)) && !isTest) {
       code = this.makeCode();
     }
-    while (await this.keyvClient.get(uniqueKey)) {
+    while (await this.keyValueClient.get(uniqueKey)) {
       uniqueKey = uuidV4();
     }
-    await this.keyvClient.set(code, String(user.id), codeExpire);
-    await this.keyvClient.set(uniqueKey, String(user.id), codeExpire);
-    await this.keyvClient.set(user.phoneNumber, user.id, codeExpire);
+    await this.keyValueClient.set(code, String(user.id), codeExpire);
+    await this.keyValueClient.set(uniqueKey, String(user.id), codeExpire);
+    await this.keyValueClient.set(user.phoneNumber, user.id, codeExpire);
     return { code, uniqueKey };
   }
 
   async getUserIdByVerifyCode(code: string, key: string): Promise<string> {
-    const userId: string = await this.keyvClient.get(code);
+    const userId: string = await this.keyValueClient.get(code);
     if (!userId) return null;
-    const userId2: string = await this.keyvClient.get(key);
+    const userId2: string = await this.keyValueClient.get(key);
     if (!userId2) return null;
     if (userId !== userId2) return null;
-    await this.keyvClient.delete(code);
-    await this.keyvClient.delete(key);
+    await this.keyValueClient.delete(code);
+    await this.keyValueClient.delete(key);
     return userId;
   }
 
@@ -79,64 +80,66 @@ class Utils {
     const isTest = process.env.NODE_ENV === 'test';
     let code: string = this.makeCode();
     if (isTest) code = '111111';
-    while ((await this.keyvClient.get(code)) && !isTest) {
+    while ((await this.keyValueClient.get(code)) && !isTest) {
       code = this.makeCode();
     }
-    await this.keyvClient.set(code, String(user.id), codeExpire);
-    await this.keyvClient.set(
+    await this.keyValueClient.set(code, String(user.id), codeExpire);
+    await this.keyValueClient.set(
       `mobile-${user.id}`,
       user.phoneNumber,
       codeExpire,
     );
-    await this.keyvClient.set(user.phoneNumber, user.id, codeExpire);
+    await this.keyValueClient.set(user.phoneNumber, user.id, codeExpire);
     return { code };
   }
 
   async getUserInfoByMobileVerifyCode(
     code: string,
   ): Promise<{ userId: string; mobile: string }> {
-    const userId: string = await this.keyvClient.get(code);
-    const mobile: string = await this.keyvClient.get(`mobile-${userId}`);
-    await this.keyvClient.delete(code);
-    await this.keyvClient.delete(`mobile-${userId}`);
-    await this.keyvClient.delete(mobile);
+    const userId: string = await this.keyValueClient.get(code);
+    const mobile: string = await this.keyValueClient.get(`mobile-${userId}`);
+    await this.keyValueClient.delete(code);
+    await this.keyValueClient.delete(`mobile-${userId}`);
+    await this.keyValueClient.delete(mobile);
     return { userId, mobile };
   }
 
   async removeVerifyOpportunity(phoneNumber: string): Promise<void> {
-    await this.keyvClient.delete(phoneNumber);
+    await this.keyValueClient.delete(phoneNumber);
   }
 
   async checkUserInVerificationOpportunity(
     phoneNumber: string,
   ): Promise<boolean> {
-    const exists = await this.keyvClient.get(phoneNumber);
+    const exists = await this.keyValueClient.get(phoneNumber);
     return Boolean(exists);
   }
 
   async clearKeyValueTable(): Promise<void> {
-    await this.keyvClient.clear();
+    await this.keyValueClient.clear();
   }
 
   async generateEmailCode(user: User, email: string): Promise<string> {
     const isTest = process.env.NODE_ENV === 'test';
     let code: string = this.makeCode();
     if (isTest) code = '111111';
-    while (await this.keyvClient.get(code)) {
+    while (await this.keyValueClient.get(code)) {
       code = this.makeCode();
     }
-    await this.keyvClient.set(code, String(user.id), emailCodeExpire);
-    await this.keyvClient.set(`email-${user.id}`, email, emailCodeExpire);
+    await this.keyValueClient.set(code, String(user.id), emailCodeExpire);
+    await this.keyValueClient.set(`email-${user.id}`, email, emailCodeExpire);
     return code;
   }
 
   async getUserInfoByCode(
     code: string,
   ): Promise<{ userId: string; emailAddress: string }> {
-    const userId: string = await this.keyvClient.get(code);
-    const emailAddress: string = await this.keyvClient.get(`email-${userId}`);
-    await this.keyvClient.delete(code);
-    await this.keyvClient.delete(`email-${userId}`);
+    const userId: string = await this.keyValueClient.get(code);
+    const emailAddress: string = await this.keyValueClient.get(
+      `email-${userId}`,
+    );
+    await this.keyValueClient.delete(code);
+    await this.keyValueClient.delete(`email-${userId}`);
     return { userId, emailAddress };
   }
 
@@ -145,5 +148,3 @@ class Utils {
     await this.nodeMailerTransport.sendMail(nodemailerOptions);
   }
 }
-
-export default new Utils();

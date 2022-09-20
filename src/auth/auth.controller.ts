@@ -73,10 +73,13 @@ export class AuthController {
     if (newUser.password !== newUser.repeatPassword) {
       throw new BadRequestException(validationMessages.invalid.repeatPassword);
     }
-    newUser.phoneNumber = utils.normalizePhoneNumber(newUser.phoneNumber);
-    const codeExists: boolean = await utils.checkUserInVerificationOpportunity(
+    newUser.phoneNumber = utils.verification.normalizePhoneNumber(
       newUser.phoneNumber,
     );
+    const codeExists: boolean =
+      await utils.verification.checkUserInVerificationOpportunity(
+        newUser.phoneNumber,
+      );
     if (codeExists) {
       throw new NotAcceptableException(exceptionMessages.notAcceptable.code);
     }
@@ -115,7 +118,7 @@ export class AuthController {
   async registerVerify(
     @Body() userInfo: VerificationCodeDto,
   ): Promise<AuthLoginDto> {
-    const userId: string = await utils.getUserIdByVerifyCode(
+    const userId: string = await utils.verification.getUserIdByVerifyCode(
       userInfo.code,
       userInfo.key,
     );
@@ -126,7 +129,7 @@ export class AuthController {
     if (!user || !!user.activated) {
       throw new NotFoundException(exceptionMessages.notFound.user);
     }
-    await utils.removeVerifyOpportunity(user.phoneNumber);
+    await utils.verification.removeVerifyOpportunity(user.phoneNumber);
     let refreshToken: string = await this.authService.login(user);
     let duplicatedUser: User = await this.userService.findUserByRefreshToken(
       refreshToken,
@@ -201,9 +204,10 @@ export class AuthController {
   async loginByCode(
     @Body() userInfo: SendLoginCodeDto,
   ): Promise<KeyResponseDto> {
-    const codeExists: boolean = await utils.checkUserInVerificationOpportunity(
-      utils.normalizePhoneNumber(userInfo.phoneNumber),
-    );
+    const codeExists: boolean =
+      await utils.verification.checkUserInVerificationOpportunity(
+        utils.verification.normalizePhoneNumber(userInfo.phoneNumber),
+      );
     if (codeExists) {
       throw new NotAcceptableException(exceptionMessages.notAcceptable.code);
     }
@@ -233,7 +237,7 @@ export class AuthController {
   async loginByCodeChecker(
     @Body() userInfo: VerificationCodeDto,
   ): Promise<AuthLoginDto> {
-    const userId: string = await utils.getUserIdByVerifyCode(
+    const userId: string = await utils.verification.getUserIdByVerifyCode(
       userInfo.code,
       userInfo.key,
     );
@@ -244,7 +248,7 @@ export class AuthController {
     if (!user || !user.activated) {
       throw new NotFoundException(exceptionMessages.notFound.user);
     }
-    await utils.removeVerifyOpportunity(user.phoneNumber);
+    await utils.verification.removeVerifyOpportunity(user.phoneNumber);
     return {
       user: await this.userService.findUserById(user.id),
       token: await this.authService.login(user),

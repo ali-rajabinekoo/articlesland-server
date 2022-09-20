@@ -49,6 +49,10 @@ export class GetArticleResponse extends Article {
   body?: string | undefined;
 }
 
+export class ViewedArticleResponse extends Article {
+  todayViews?: number | undefined;
+}
+
 export const PublishArticleSchema: SchemaObject | ReferenceObject = {
   type: 'object',
   properties: {

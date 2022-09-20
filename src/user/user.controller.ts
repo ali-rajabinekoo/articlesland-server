@@ -95,13 +95,16 @@ export class UserController {
       }
       throw new NotAcceptableException(exceptionMessages.exist.email);
     }
-    const code: string = await utils.generateEmailCode(req.user, body.email);
+    const code: string = await utils.verification.generateEmailCode(
+      req.user,
+      body.email,
+    );
     const username: string = req.user.displayName || req.user.username;
     const template: string = generateTemplate(username, code);
     const mailOptions: NodemailerOptionsDto = new NodemailerOptionsDto();
     mailOptions.html = template;
     mailOptions.to = body.email;
-    await utils.sendEmail(mailOptions);
+    await utils.verification.sendEmail(mailOptions);
   }
 
   @Patch('email/verify')
@@ -120,7 +123,7 @@ export class UserController {
     @Req() req: RequestFormat,
   ): Promise<User> {
     const { userId, emailAddress }: { userId: string; emailAddress: string } =
-      await utils.getUserInfoByCode(body.code);
+      await utils.verification.getUserInfoByCode(body.code);
     if (!userId || !emailAddress) {
       throw new ForbiddenException(exceptionMessages.invalid.code);
     }
@@ -153,7 +156,9 @@ export class UserController {
     @Body() userInfo: SendLoginCodeDto,
     @Req() req: RequestFormat,
   ): Promise<void> {
-    userInfo.phoneNumber = utils.normalizePhoneNumber(userInfo.phoneNumber);
+    userInfo.phoneNumber = utils.verification.normalizePhoneNumber(
+      userInfo.phoneNumber,
+    );
     const duplicatedUser: User = await this.userService.findUserByPhoneNumber(
       userInfo,
     );
@@ -163,9 +168,10 @@ export class UserController {
       }
       throw new NotAcceptableException(exceptionMessages.exist.mobile);
     }
-    const codeExists: boolean = await utils.checkUserInVerificationOpportunity(
-      utils.normalizePhoneNumber(userInfo.phoneNumber),
-    );
+    const codeExists: boolean =
+      await utils.verification.checkUserInVerificationOpportunity(
+        utils.verification.normalizePhoneNumber(userInfo.phoneNumber),
+      );
     if (codeExists) {
       throw new NotAcceptableException(exceptionMessages.notAcceptable.code);
     }
@@ -195,7 +201,7 @@ export class UserController {
     @Req() req: RequestFormat,
   ): Promise<User> {
     const { userId, mobile }: { userId: string; mobile: string } =
-      await utils.getUserInfoByMobileVerifyCode(userInfo.code);
+      await utils.verification.getUserInfoByMobileVerifyCode(userInfo.code);
     if (!userId || !mobile) {
       throw new ForbiddenException(exceptionMessages.invalid.code);
     }
@@ -207,7 +213,7 @@ export class UserController {
     ) {
       throw new ForbiddenException(exceptionMessages.invalid.code);
     }
-    user.phoneNumber = utils.normalizePhoneNumber(mobile);
+    user.phoneNumber = utils.verification.normalizePhoneNumber(mobile);
     return this.userService.saveUser(user);
   }
 

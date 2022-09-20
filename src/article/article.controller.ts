@@ -1,22 +1,23 @@
 import {
+  BadRequestException,
   Body,
   ClassSerializerInterceptor,
   ConflictException,
   Controller,
+  Delete,
+  ForbiddenException,
+  Get,
+  HttpCode,
+  Ip,
   NotFoundException,
-  Post,
-  Req,
-  Put,
   Param,
+  Patch,
+  Post,
+  Put,
+  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
-  ForbiddenException,
-  BadRequestException,
-  Get,
-  Delete,
-  Patch,
-  HttpCode,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -44,15 +45,19 @@ import {
   GetArticleResponse,
   PublishArticleDto,
   PublishArticleSchema,
+  ViewedArticleResponse,
 } from './article.dto';
 import { CategoryService } from '../category/category.service';
 import { exceptionMessages, validationMessages } from '../libs/messages';
 import {
+  bannerStorage,
   imageFileFilter,
   imageSize,
-  bannerStorage,
 } from '../libs/file-uploading.utils';
 import { join } from 'path';
+import utils from '../libs/utils/index';
+import { UserService } from '../user/user.service';
+import { User } from '../user/user.entity';
 
 @Controller('article')
 @ApiTags('article')
@@ -65,7 +70,30 @@ export class ArticleController {
   constructor(
     private articleService: ArticleService,
     private categoryService: CategoryService,
+    private userService: UserService,
   ) {}
+
+  @Get('/mine')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    description: 'Returns article.',
+    type: Article,
+  })
+  @ApiNotFoundResponse({ description: 'Article not found.' })
+  async getMyArticle(
+    @Req() req: RequestFormat,
+  ): Promise<ViewedArticleResponse[]> {
+    const user: User = await this.userService.findUserById(req.user.id);
+    const articles: Article[] = user.articles as Article[];
+    return Promise.all(
+      articles.map(async (el: Article) => {
+        const newEl: ViewedArticleResponse = { ...el };
+        newEl.todayViews = (await utils.views.getView(el.id)) || 0;
+        return newEl;
+      }),
+    );
+  }
 
   @Get('/public/:username/:id')
   @ApiCreatedResponse({
@@ -76,14 +104,24 @@ export class ArticleController {
   async getArticleForOtherUsers(
     @Param('id') id: number,
     @Param('username') username: string,
+    @Ip() ipAddress: string,
   ): Promise<GetArticleResponse> {
     const article: Article = await this.articleService.findArticleById(id);
     if (!article || !article.published || article.owner.username !== username) {
       throw new NotFoundException(exceptionMessages.notFound.article);
     }
-    const response: GetArticleResponse = article as GetArticleResponse;
+    const response: GetArticleResponse = { ...article } as GetArticleResponse;
     response.body = await this.articleService.fetchArticleBody(article.bodyUrl);
-    return article;
+    utils.views
+      .setView(id, ipAddress)
+      .then((viewedByThisUser: boolean) => {
+        if (!viewedByThisUser) {
+          article.viewed = (article.viewed || 0) + 1;
+          return this.articleService.saveArticle(article).catch();
+        }
+      })
+      .catch();
+    return response;
   }
 
   @Get(':id')

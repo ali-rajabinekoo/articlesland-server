@@ -58,7 +58,7 @@ describe('AuthController', () => {
     });
     if (!!user) await repository.remove(user);
 
-    await utils.clearKeyValueTable();
+    await utils.verification.clearKeyValueTable();
   });
 
   afterAll(async () => {
@@ -67,7 +67,7 @@ describe('AuthController', () => {
     });
     if (!!user) await repository.remove(user);
 
-    await utils.clearKeyValueTable();
+    await utils.verification.clearKeyValueTable();
   });
 
   beforeEach(() => {
@@ -154,7 +154,7 @@ describe('AuthController', () => {
       created_at: expect.any(Date),
       updated_at: expect.any(Date),
       id: expect.any(Number),
-      phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
+      phoneNumber: utils.verification.normalizePhoneNumber(newUser.phoneNumber),
     });
   });
 
@@ -209,7 +209,9 @@ describe('AuthController', () => {
           created_at: expect.any(Date),
           updated_at: expect.any(Date),
           id: expect.any(Number),
-          phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
+          phoneNumber: utils.verification.normalizePhoneNumber(
+            newUser.phoneNumber,
+          ),
         }),
       }),
     );
@@ -227,7 +229,7 @@ describe('AuthController', () => {
       created_at: expect.any(Date),
       updated_at: expect.any(Date),
       id: expect.any(Number),
-      phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
+      phoneNumber: utils.verification.normalizePhoneNumber(newUser.phoneNumber),
     });
   });
 
@@ -317,7 +319,9 @@ describe('AuthController', () => {
           created_at: expect.any(Date),
           updated_at: expect.any(Date),
           id: expect.any(Number),
-          phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
+          phoneNumber: utils.verification.normalizePhoneNumber(
+            newUser.phoneNumber,
+          ),
         }),
       }),
     );
@@ -406,7 +410,9 @@ describe('AuthController', () => {
           created_at: expect.any(Date),
           updated_at: expect.any(Date),
           id: expect.any(Number),
-          phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
+          phoneNumber: utils.verification.normalizePhoneNumber(
+            newUser.phoneNumber,
+          ),
         }),
       }),
     );

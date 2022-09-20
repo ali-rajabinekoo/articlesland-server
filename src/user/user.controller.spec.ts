@@ -30,13 +30,15 @@ describe('UserController', () => {
     newUser.username = 'test-user';
     newUser.password = 'Test1234@1';
     newUser.repeatPassword = 'Test1234@1';
-    newUser.phoneNumber = utils.normalizePhoneNumber('+98357877418');
+    newUser.phoneNumber =
+      utils.verification.normalizePhoneNumber('+98357877418');
   };
 
   const createDuplicatedUser = async (email?: string) => {
     duplicatedUser.username = 'test-user2';
     duplicatedUser.password = 'Test1234@1';
-    duplicatedUser.phoneNumber = utils.normalizePhoneNumber('+98357877411');
+    duplicatedUser.phoneNumber =
+      utils.verification.normalizePhoneNumber('+98357877411');
     if (!!email) duplicatedUser.email = email;
     await repository.save(duplicatedUser);
   };
@@ -73,7 +75,7 @@ describe('UserController', () => {
     });
     if (!!user) await repository.remove(user);
 
-    await utils.clearKeyValueTable();
+    await utils.verification.clearKeyValueTable();
   });
 
   beforeEach(async () => {
@@ -103,7 +105,7 @@ describe('UserController', () => {
       created_at: expect.any(Date),
       updated_at: expect.any(Date),
       id: expect.any(Number),
-      phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
+      phoneNumber: utils.verification.normalizePhoneNumber(newUser.phoneNumber),
     });
   });
 
