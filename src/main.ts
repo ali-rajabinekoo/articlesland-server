@@ -1,7 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { clearingKeyvScheduler } from './libs/cronjob';
+import { clearingKeyValueDatabaseScheduler } from './libs/cronjob';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
@@ -26,7 +26,7 @@ async function bootstrap() {
 
   process.env.TZ = 'Asia/Tehran';
 
-  clearingKeyvScheduler.start();
+  clearingKeyValueDatabaseScheduler.start();
   await app.listen(8080);
 }
 

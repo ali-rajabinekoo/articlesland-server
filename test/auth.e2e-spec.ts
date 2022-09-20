@@ -42,7 +42,7 @@ describe('Auth (e2e)', () => {
     repository = moduleFixture.get<Repository<User>>(getRepositoryToken(User));
 
     await removeTestUser();
-    await utils.clearKeyValueTable();
+    await utils.verification.clearKeyValueTable();
   });
 
   beforeEach(() => {
@@ -60,7 +60,7 @@ describe('Auth (e2e)', () => {
 
   afterAll(async () => {
     await removeTestUser();
-    await utils.clearKeyValueTable();
+    await utils.verification.clearKeyValueTable();
   });
 
   it(`${route}/register (POST - 400) | Empty field (username)`, async () => {
@@ -231,7 +231,7 @@ describe('Auth (e2e)', () => {
       updated_at: expect.any(Date),
       activated: false,
       id: expect.any(Number),
-      phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
+      phoneNumber: utils.verification.normalizePhoneNumber(newUser.phoneNumber),
     });
   });
 
@@ -294,7 +294,9 @@ describe('Auth (e2e)', () => {
           created_at: expect.any(String),
           updated_at: expect.any(String),
           id: expect.any(Number),
-          phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
+          phoneNumber: utils.verification.normalizePhoneNumber(
+            newUser.phoneNumber,
+          ),
         }),
       }),
     );
@@ -448,7 +450,9 @@ describe('Auth (e2e)', () => {
           created_at: expect.any(String),
           updated_at: expect.any(String),
           id: expect.any(Number),
-          phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
+          phoneNumber: utils.verification.normalizePhoneNumber(
+            newUser.phoneNumber,
+          ),
         }),
       }),
     );

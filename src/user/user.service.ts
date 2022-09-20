@@ -44,7 +44,7 @@ export class UserService {
 
   async findUserByPhoneNumber(info: SendLoginCodeDto): Promise<User> {
     return this.usersRepository.findOneBy({
-      phoneNumber: utils.normalizePhoneNumber(info.phoneNumber),
+      phoneNumber: utils.verification.normalizePhoneNumber(info.phoneNumber),
     });
   }
 
@@ -112,7 +112,7 @@ export class UserService {
   }
 
   async sendCode(user: User): Promise<boolean> {
-    const { code } = await utils.generateUpdateMobileCode(user);
+    const { code } = await utils.verification.generateUpdateMobileCode(user);
     const { Value }: MellipayamakResponse = await request.sendSms(
       user.phoneNumber,
       [code],

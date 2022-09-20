@@ -15,7 +15,9 @@ export class AuthService {
   }
 
   async sendCode(user: User): Promise<string> {
-    const { code, uniqueKey } = await utils.generateLoginCode(user);
+    const { code, uniqueKey } = await utils.verification.generateLoginCode(
+      user,
+    );
     const { Value }: MellipayamakResponse = await request.sendSms(
       user.phoneNumber,
       [code],

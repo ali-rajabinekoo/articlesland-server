@@ -21,7 +21,8 @@ describe('AppController (e2e)', () => {
     newUser.username = 'testuser';
     newUser.password = 'Test1234@1';
     newUser.repeatPassword = 'Test1234@1';
-    newUser.phoneNumber = utils.normalizePhoneNumber('+98357877418');
+    newUser.phoneNumber =
+      utils.verification.normalizePhoneNumber('+98357877418');
   };
 
   beforeAll(async () => {
@@ -68,7 +69,9 @@ describe('AppController (e2e)', () => {
           created_at: expect.any(String),
           updated_at: expect.any(String),
           id: expect.any(Number),
-          phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
+          phoneNumber: utils.verification.normalizePhoneNumber(
+            newUser.phoneNumber,
+          ),
         }),
       }),
     );
@@ -91,7 +94,7 @@ describe('AppController (e2e)', () => {
       created_at: expect.any(String),
       updated_at: expect.any(String),
       id: expect.any(Number),
-      phoneNumber: utils.normalizePhoneNumber(newUser.phoneNumber),
+      phoneNumber: utils.verification.normalizePhoneNumber(newUser.phoneNumber),
     });
   });
 });
