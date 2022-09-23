@@ -101,6 +101,7 @@ export class Article {
   })
   bookmarks: Relation<Bookmark[]>;
 
+  @ApiProperty({ type: [Comment] })
   @OneToMany(() => Comment, (comment) => comment.article, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
