@@ -9,6 +9,7 @@ export const validationMessages = {
     code: 'کد یکبار مصرف الزامیست',
     articleTitle: 'عنوان برای پست الزامیست',
     articleBody: 'متن بدنه برای پست الزامیست',
+    commentBody: 'متن بدنه برای نظرات الزامیست',
     categoryId: 'حداقل یک مورد از لیست ها برای پست جدید باید انتخاب شود',
     articleBanner: 'انتخاب تصویر برای پست الزامیست',
     avatar: 'انتخاب تصویر پروفایل الزامیست',
@@ -21,6 +22,8 @@ export const validationMessages = {
     displayNameShort: 'نام نمایشی شما باید حداقل شامل ۴ حرف باشد',
     displayNameLong: 'نام نمایشی شما باید حداکثر شامل ۵۰ حرف باشد',
     selectedCategories: 'حداقل یک مورد از لیست ها باید انتخاب شده باشد',
+    commentBodyShort: 'متن بدنه نظر شما باید حداقل شامل ۱۰ حرف باشد',
+    commentBodyLong: 'متن بدنه نظر شما باید حداکثر شامل ۵۰۰ حرف باشد',
   },
   invalid: {
     username: 'نام کاربری شامل حروف انگلیسی و اعداد می باشد',
@@ -43,6 +46,7 @@ export const exceptionMessages = {
   },
   notFound: {
     user: 'کاربر مورد نظر پیدا نشد',
+    comment: 'کامنت یافت نشد',
     category: 'لیست مورد نظر یافت نشد',
     article: 'پست مورد نظر یافت نشد',
   },

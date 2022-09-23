@@ -19,6 +19,7 @@ import { Like } from '../like/like.entity';
 import { Bookmark } from '../bookmark/bookmark.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Category } from '../category/category.entity';
+import { Comment } from '../comment/comment.entity';
 
 @Entity('user')
 export class User {
@@ -143,6 +144,14 @@ export class User {
   })
   @JoinTable({ name: 'user_categories' })
   selectedCategories: Relation<Category[]>;
+
+  @ApiProperty({ type: [Comment] })
+  @OneToMany(() => Comment, (comment) => comment.owner, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  @Exclude({ toPlainOnly: true })
+  comments: Relation<Comment[]>;
 
   @BeforeInsert()
   async hashPassword() {

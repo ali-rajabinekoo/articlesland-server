@@ -155,7 +155,7 @@ export class ArticleService {
   }
 
   async findArticleById(id: number): Promise<Article> {
-    return this.articlesRepository.findOne({
+    return await this.articlesRepository.findOne({
       where: {
         id,
       },
@@ -166,6 +166,10 @@ export class ArticleService {
         'likes',
         'bookmarks',
         'comments',
+        'comments.owner',
+        'comments.parent',
+        'comments.parent.owner',
+        'comments.children.owner',
       ],
     });
   }
