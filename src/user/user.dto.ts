@@ -208,3 +208,12 @@ export class UpdateUserInfo {
   @IsOptional()
   bio?: string | undefined;
 }
+
+export class FollowDto {
+  @ApiProperty({
+    default: '1',
+    description: 'Following user id.',
+  })
+  @IsNotEmpty({ message: validationMessages.empty.follow })
+  newFollowingUserId: number;
+}

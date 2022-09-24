@@ -21,6 +21,23 @@ export class UserService {
     private usersRepository: Repository<User>,
   ) {}
 
+  private formatFollowedUsers(followedUsers: User[]): User[] {
+    return followedUsers.map((el: User) => {
+      delete el.refreshToken;
+      delete el.email;
+      delete el.phoneNumber;
+      delete el.created_at;
+      delete el.updated_at;
+      return el;
+    });
+  }
+
+  private normalizeFollowedUsers(user: User): User {
+    user.followings = this.formatFollowedUsers(user.followings);
+    user.followers = this.formatFollowedUsers(user.followers);
+    return user;
+  }
+
   async findUserByUniqueInfo(body: UserUniqueInfoDto): Promise<User> {
     const user: User = await this.usersRepository.findOneBy({
       username: body.username,
@@ -49,19 +66,21 @@ export class UserService {
   }
 
   async findUserById(id: number): Promise<User> {
-    return this.usersRepository.findOne({
-      where: { id },
-      relations: [
-        'articles',
-        'articles.category',
-        'followers',
-        'following',
-        'reports',
-        'likes',
-        'bookmarks',
-        'selectedCategories',
-      ],
-    });
+    return this.normalizeFollowedUsers(
+      await this.usersRepository.findOne({
+        where: { id },
+        relations: [
+          'articles',
+          'articles.category',
+          'followers',
+          'followings',
+          'reports',
+          'likes',
+          'bookmarks',
+          'selectedCategories',
+        ],
+      }),
+    );
   }
 
   async findUserByEmail(email: string): Promise<User> {
@@ -70,7 +89,7 @@ export class UserService {
       relations: [
         'articles',
         'followers',
-        'following',
+        'followings',
         'reports',
         'likes',
         'bookmarks',

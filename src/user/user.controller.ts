@@ -14,10 +14,13 @@ import {
   ConflictException,
   UploadedFile,
   BadRequestException,
+  Post,
+  NotFoundException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import {
+  FollowDto,
   RequestFormat,
   SendEmailVerificationCodeDto,
   SendLoginCodeDto,
@@ -295,5 +298,55 @@ export class UserController {
       user.password = await bcrypt.hash(userInfo.password, 10);
     }
     return this.userService.saveUser(user);
+  }
+
+  @Post('follow')
+  @ApiOkResponse({
+    description: 'User followed.',
+    type: User,
+  })
+  async follow(
+    @Body() body: FollowDto,
+    @Req() req: RequestFormat,
+  ): Promise<User> {
+    const follower: User = req.user;
+    const following: User = await this.userService.findUserById(
+      body.newFollowingUserId,
+    );
+    if (!following || following?.id === follower.id) {
+      throw new NotFoundException(exceptionMessages.notFound.user);
+    }
+    follower.followings.push(following);
+    await this.userService.saveUser(follower);
+    following.followers.push(follower);
+    await this.userService.saveUser(following);
+    return this.userService.findUserById(follower.id);
+  }
+
+  @Post('unfollow')
+  @ApiOkResponse({
+    description: 'User unfollowed.',
+    type: User,
+  })
+  async unfollow(
+    @Body() body: FollowDto,
+    @Req() req: RequestFormat,
+  ): Promise<User> {
+    const follower: User = req.user;
+    const following: User = await this.userService.findUserById(
+      body.newFollowingUserId,
+    );
+    if (!following || following?.id === follower.id) {
+      throw new NotFoundException(exceptionMessages.notFound.user);
+    }
+    follower.followings = follower.followings.filter((user: User) => {
+      return user.id !== following.id;
+    });
+    await this.userService.saveUser(follower);
+    following.followers = following.followers.filter((user: User) => {
+      return user.id !== follower.id;
+    });
+    await this.userService.saveUser(following);
+    return this.userService.findUserById(follower.id);
   }
 }
