@@ -84,33 +84,37 @@ export class UserService {
   }
 
   async findUserByEmail(email: string): Promise<User> {
-    return this.usersRepository.findOne({
-      where: { email },
-      relations: [
-        'articles',
-        'followers',
-        'followings',
-        'reports',
-        'likes',
-        'bookmarks',
-        'selectedCategories',
-      ],
-    });
+    return this.normalizeFollowedUsers(
+      await this.usersRepository.findOne({
+        where: { email },
+        relations: [
+          'articles',
+          'followers',
+          'followings',
+          'reports',
+          'likes',
+          'bookmarks',
+          'selectedCategories',
+        ],
+      }),
+    );
   }
 
   async findUserByRefreshToken(refreshToken: string): Promise<User> {
-    return this.usersRepository.findOne({
-      where: { refreshToken },
-      relations: [
-        'articles',
-        'followers',
-        'following',
-        'reports',
-        'likes',
-        'bookmarks',
-        'selectedCategories',
-      ],
-    });
+    return this.normalizeFollowedUsers(
+      await this.usersRepository.findOne({
+        where: { refreshToken },
+        relations: [
+          'articles',
+          'followers',
+          'followings',
+          'reports',
+          'likes',
+          'bookmarks',
+          'selectedCategories',
+        ],
+      }),
+    );
   }
 
   async verifyUser(user: User): Promise<void> {
