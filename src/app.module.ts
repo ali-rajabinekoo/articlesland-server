@@ -16,8 +16,6 @@ import { ReportModule } from './report/report.module';
 import { Like } from './like/like.entity';
 import { Bookmark } from './bookmark/bookmark.entity';
 import { Report } from './report/report.entity';
-import { FollowModule } from './follow/follow.module';
-import { Follow } from './follow/follow.entity';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { DraftModule } from './draft/draft.module';
@@ -31,16 +29,7 @@ export const AppModuleMetadata = {
       username: database.username,
       password: database.password,
       database: database.dbname,
-      entities: [
-        User,
-        Category,
-        Article,
-        Comment,
-        Like,
-        Bookmark,
-        Report,
-        Follow,
-      ],
+      entities: [User, Category, Article, Comment, Like, Bookmark, Report],
       synchronize: true,
       timezone: 'Asia/Tehran',
     }),
@@ -56,7 +45,6 @@ export const AppModuleMetadata = {
     LikeModule,
     BookmarkModule,
     ReportModule,
-    FollowModule,
     DraftModule,
   ],
 };

@@ -13,7 +13,6 @@ import {
 import { Exclude } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
 import { Article } from '../article/article.entity';
-import { Follow } from '../follow/follow.entity';
 import { Report } from '../report/report.entity';
 import { Like } from '../like/like.entity';
 import { Bookmark } from '../bookmark/bookmark.entity';
@@ -91,11 +90,9 @@ export class User {
     },
     description: 'Some users that follow this user',
   })
-  @OneToMany(() => Follow, (follow) => follow.follower, {
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  })
-  followers: Relation<Follow[]>;
+  @ManyToMany(() => User)
+  @JoinTable({ name: 'followers' })
+  followers: Relation<User[]>;
 
   @ApiProperty({
     default: {
@@ -108,13 +105,11 @@ export class User {
       created_at: '2022-08-17T18:20:49.785Z',
       updated_at: '2022-08-17T18:20:49.785Z',
     },
-    description: 'Some users that this user follows',
+    description: 'Some users that follow this user',
   })
-  @OneToMany(() => Follow, (follow) => follow.following, {
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  })
-  following: Relation<Follow[]>;
+  @ManyToMany(() => User)
+  @JoinTable({ name: 'followings' })
+  followings: Relation<User[]>;
 
   @ApiProperty({ type: [Report] })
   @OneToMany(() => Report, (report) => report.owner, {

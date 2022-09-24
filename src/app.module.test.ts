@@ -7,7 +7,6 @@ import { Comment } from './comment/comment.entity';
 import { Like } from './like/like.entity';
 import { Bookmark } from './bookmark/bookmark.entity';
 import { Report } from './report/report.entity';
-import { Follow } from './follow/follow.entity';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { ArticleModule } from './article/article.module';
@@ -16,7 +15,6 @@ import { CommentModule } from './comment/comment.module';
 import { LikeModule } from './like/like.module';
 import { BookmarkModule } from './bookmark/bookmark.module';
 import { ReportModule } from './report/report.module';
-import { FollowModule } from './follow/follow.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
@@ -28,16 +26,7 @@ export const TypeOrmTestingModule = () => [
     username: database.username,
     password: database.password,
     database: database.dbnameTest,
-    entities: [
-      User,
-      Category,
-      Article,
-      Comment,
-      Like,
-      Bookmark,
-      Report,
-      Follow,
-    ],
+    entities: [User, Category, Article, Comment, Like, Bookmark, Report],
     synchronize: true,
   }),
   ServeStaticModule.forRoot({
@@ -52,7 +41,6 @@ export const TypeOrmTestingModule = () => [
     Like,
     Bookmark,
     Report,
-    Follow,
   ]),
 ];
 
@@ -66,7 +54,6 @@ export const AppModuleTestMetadata = {
     LikeModule,
     BookmarkModule,
     ReportModule,
-    FollowModule,
     ...TypeOrmTestingModule(),
   ],
 };
