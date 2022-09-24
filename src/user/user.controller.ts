@@ -79,13 +79,35 @@ export class UserController {
     return this.userService.findUserById(req.user.id);
   }
 
-  @Get(':id')
+  // @Get(':id')
+  // @ApiOkResponse({
+  //   description: 'Returns another user info by id.',
+  //   type: User,
+  // })
+  // async getUserInformationById(@Param('id') id: string): Promise<User> {
+  //   const user: User = await this.userService.findUserById(Number(id));
+  //   delete user.phoneNumber;
+  //   delete user.email;
+  //   delete user.updated_at;
+  //   delete user.created_at;
+  //   delete user.refreshToken;
+  //   delete user.bookmarks;
+  //   delete user.comments;
+  //   delete user.likes;
+  //   delete user.reports;
+  //   delete user.selectedCategories;
+  //   return user;
+  // }
+
+  @Get(':username')
   @ApiOkResponse({
     description: 'Returns another user info by id.',
     type: User,
   })
-  async getUserInformationById(@Param('id') id: string): Promise<User> {
-    const user: User = await this.userService.findUserById(Number(id));
+  async getUserInformationById(
+    @Param('username') username: string,
+  ): Promise<User> {
+    const user: User = await this.userService.findUserByUsername(username);
     delete user.phoneNumber;
     delete user.email;
     delete user.updated_at;

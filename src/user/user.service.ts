@@ -83,6 +83,24 @@ export class UserService {
     );
   }
 
+  async findUserByUsername(username: string): Promise<User> {
+    return this.normalizeFollowedUsers(
+      await this.usersRepository.findOne({
+        where: { username },
+        relations: [
+          'articles',
+          'articles.category',
+          'followers',
+          'followings',
+          'reports',
+          'likes',
+          'bookmarks',
+          'selectedCategories',
+        ],
+      }),
+    );
+  }
+
   async findUserByEmail(email: string): Promise<User> {
     return this.normalizeFollowedUsers(
       await this.usersRepository.findOne({
