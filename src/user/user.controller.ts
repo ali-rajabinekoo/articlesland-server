@@ -16,6 +16,7 @@ import {
   BadRequestException,
   Post,
   NotFoundException,
+  Param,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -55,11 +56,8 @@ import {
 import * as bcrypt from 'bcrypt';
 
 @Controller('user')
-@ApiBearerAuth()
 @ApiTags('user')
 @UseInterceptors(ClassSerializerInterceptor)
-@UseGuards(JwtAuthGuard)
-@ApiUnauthorizedResponse({ description: 'Unauthorized', type: UnauthorizedDto })
 @ApiInternalServerErrorResponse({
   description: 'Internal server error',
 })
@@ -67,15 +65,47 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @Get()
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     description: 'Returns user info.',
     type: User,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: UnauthorizedDto,
   })
   async getUserInformation(@Req() req: RequestFormat): Promise<User> {
     return this.userService.findUserById(req.user.id);
   }
 
+  @Get(':id')
+  @ApiOkResponse({
+    description: 'Returns another user info by id.',
+    type: User,
+  })
+  async getUserInformationById(@Param('id') id: string): Promise<User> {
+    const user: User = await this.userService.findUserById(Number(id));
+    delete user.phoneNumber;
+    delete user.email;
+    delete user.updated_at;
+    delete user.created_at;
+    delete user.refreshToken;
+    delete user.bookmarks;
+    delete user.comments;
+    delete user.likes;
+    delete user.reports;
+    delete user.selectedCategories;
+    return user;
+  }
+
   @Patch('email/send')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: UnauthorizedDto,
+  })
   @ApiOkResponse({
     description: 'Email address verification code sent.',
   })
@@ -111,6 +141,12 @@ export class UserController {
   }
 
   @Patch('email/verify')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: UnauthorizedDto,
+  })
   @ApiOkResponse({
     description: 'Email address verified.',
     type: User,
@@ -143,6 +179,12 @@ export class UserController {
   }
 
   @Patch('mobile/send')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: UnauthorizedDto,
+  })
   @ApiOkResponse({
     description: 'Mobile verification code sent.',
   })
@@ -189,6 +231,12 @@ export class UserController {
   }
 
   @Patch('mobile/verify')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: UnauthorizedDto,
+  })
   @ApiOkResponse({
     description: 'Mobile code verified.',
     type: User,
@@ -221,6 +269,12 @@ export class UserController {
   }
 
   @Patch('avatar')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: UnauthorizedDto,
+  })
   @UseInterceptors(
     FileInterceptor('image', {
       storage: avatarStorage,
@@ -265,6 +319,12 @@ export class UserController {
   }
 
   @Put()
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: UnauthorizedDto,
+  })
   @ApiOkResponse({
     description: 'Profile updated.',
     type: User,
@@ -301,6 +361,12 @@ export class UserController {
   }
 
   @Post('follow')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: UnauthorizedDto,
+  })
   @ApiOkResponse({
     description: 'User followed.',
     type: User,
@@ -324,6 +390,12 @@ export class UserController {
   }
 
   @Post('unfollow')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: UnauthorizedDto,
+  })
   @ApiOkResponse({
     description: 'User unfollowed.',
     type: User,
