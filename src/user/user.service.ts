@@ -33,8 +33,13 @@ export class UserService {
   }
 
   private normalizeFollowedUsers(user: User): User {
-    user.followings = this.formatFollowedUsers(user.followings);
-    user.followers = this.formatFollowedUsers(user.followers);
+    if (user === null) return null;
+    if (!!user?.followings && user?.followings.length !== 0) {
+      user.followings = this.formatFollowedUsers(user.followings);
+    }
+    if (!!user.followers && user?.followers.length !== 0) {
+      user.followers = this.formatFollowedUsers(user.followers);
+    }
     return user;
   }
 
@@ -84,7 +89,7 @@ export class UserService {
   }
 
   async findUserByUsername(username: string): Promise<User> {
-    return this.normalizeFollowedUsers(
+    const user: User = this.normalizeFollowedUsers(
       await this.usersRepository.findOne({
         where: { username },
         relations: [
@@ -99,6 +104,8 @@ export class UserService {
         ],
       }),
     );
+    user.articles = user.articles.filter((el) => el.published);
+    return user;
   }
 
   async findUserByEmail(email: string): Promise<User> {
