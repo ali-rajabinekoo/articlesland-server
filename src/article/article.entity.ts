@@ -13,7 +13,6 @@ import { User } from '../user/user.entity';
 import { Category } from '../category/category.entity';
 import { Report } from '../report/report.entity';
 import { Like } from '../like/like.entity';
-import { Bookmark } from '../bookmark/bookmark.entity';
 import { Comment } from '../comment/comment.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
@@ -95,11 +94,11 @@ export class Article {
   })
   likes: Relation<Like[]>;
 
-  @OneToMany(() => Bookmark, (bookmark) => bookmark.article, {
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  })
-  bookmarks: Relation<Bookmark[]>;
+  // @OneToMany(() => Bookmark, (bookmark) => bookmark.article, {
+  //   onDelete: 'CASCADE',
+  //   onUpdate: 'CASCADE',
+  // })
+  // bookmarks: Relation<Bookmark[]>;
 
   @ApiProperty({ type: [Comment] })
   @OneToMany(() => Comment, (comment) => comment.article, {

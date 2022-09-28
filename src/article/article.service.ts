@@ -143,14 +143,7 @@ export class ArticleService {
       where: {
         title: title.trim(),
       },
-      relations: [
-        'owner',
-        'category',
-        'reports',
-        'likes',
-        'bookmarks',
-        'comments',
-      ],
+      relations: ['owner', 'category', 'reports', 'likes', 'comments'],
     });
   }
 
@@ -164,7 +157,6 @@ export class ArticleService {
         'category',
         'reports',
         'likes',
-        'bookmarks',
         'comments',
         'comments.owner',
         'comments.parent',

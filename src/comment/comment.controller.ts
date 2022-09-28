@@ -68,7 +68,7 @@ export class CommentController {
       throw new NotFoundException(exceptionMessages.notFound.article);
     }
     let parentComment: Comment | undefined;
-    if (!!body.parentId) {
+    if (!!body?.parentId) {
       const comment: Comment = await this.commentService.findCommentById(
         Number(body.parentId),
       );
@@ -100,16 +100,20 @@ export class CommentController {
     const comment: Comment = await this.commentService.findCommentById(
       commentId,
     );
-    if (!comment || comment.article.id !== articleId) {
+    if (!comment || comment?.article?.id !== articleId) {
       throw new NotFoundException(exceptionMessages.notFound.comment);
     }
-    if (comment.owner.id !== req.user.id) {
+    if (comment?.owner?.id !== req.user.id) {
       throw new ForbiddenException(exceptionMessages.permission.main);
     }
     const parentComment: Comment = { ...comment.parent };
-    parentComment.childNumber = parentComment.childNumber - 1;
+    if (!!parentComment?.id) {
+      parentComment.childNumber = !!parentComment?.childNumber
+        ? parentComment.childNumber - 1
+        : 0;
+      await this.commentService.saveComment(parentComment);
+    }
     await this.commentService.removeComment(comment);
-    await this.commentService.saveComment(parentComment);
     const article: Article = await this.articleService.findArticleById(
       articleId,
     );
