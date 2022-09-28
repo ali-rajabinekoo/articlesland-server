@@ -11,14 +11,13 @@ import {
   Relation,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import * as bcrypt from 'bcrypt';
 import { Article } from '../article/article.entity';
 import { Report } from '../report/report.entity';
 import { Like } from '../like/like.entity';
-import { Bookmark } from '../bookmark/bookmark.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Category } from '../category/category.entity';
 import { Comment } from '../comment/comment.entity';
+import * as bcrypt from 'bcrypt';
 
 @Entity('user')
 export class User {
@@ -126,11 +125,12 @@ export class User {
   likes: Relation<Like[]>;
 
   @ApiProperty({ type: [Article] })
-  @OneToMany(() => Bookmark, (bookmark) => bookmark.owner, {
+  @ManyToMany(() => Article, (article) => article.id, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
-  bookmarks: Relation<Bookmark[]>;
+  @JoinTable({ name: 'bookmarks' })
+  bookmarks: Relation<Article[]>;
 
   @ApiProperty({ type: [Category] })
   @ManyToMany(() => Category, (category) => category.id, {

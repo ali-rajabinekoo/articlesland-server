@@ -360,4 +360,60 @@ export class ArticleController {
     article.published = false;
     return this.articleService.saveArticle(article);
   }
+
+  @Post('bookmark/:articleId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: UnauthorizedDto,
+  })
+  @ApiOkResponse({
+    description: 'The article add to bookmark list.',
+    type: User,
+  })
+  async addBookmark(
+    @Param('articleId') articleId: number,
+    @Req() req: RequestFormat,
+  ): Promise<Article[]> {
+    const article: Article = await this.articleService.findArticleById(
+      articleId,
+    );
+    if (!article || !article.published) {
+      throw new NotFoundException(exceptionMessages.notFound.article);
+    }
+    const user: User = await this.userService.findUserById(req.user.id);
+    user.bookmarks.push(article);
+    await this.userService.saveUser(user);
+    return user.bookmarks;
+  }
+
+  @Delete('bookmark/:articleId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: UnauthorizedDto,
+  })
+  @ApiOkResponse({
+    description: 'The article removed from bookmark list.',
+    type: User,
+  })
+  async removeBookmark(
+    @Param('articleId') articleId: number,
+    @Req() req: RequestFormat,
+  ): Promise<Article[]> {
+    const article: Article = await this.articleService.findArticleById(
+      articleId,
+    );
+    if (!article || !article.published) {
+      throw new NotFoundException(exceptionMessages.notFound.article);
+    }
+    const user: User = await this.userService.findUserById(req.user.id);
+    user.bookmarks = user.bookmarks.filter(
+      (el: Article) => el.id !== article.id,
+    );
+    await this.userService.saveUser(user);
+    return user.bookmarks;
+  }
 }
