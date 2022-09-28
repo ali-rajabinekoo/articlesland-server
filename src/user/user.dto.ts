@@ -243,11 +243,15 @@ export class UserResDto {
       protectedUser?: boolean;
       showRefreshToken?: boolean;
       authenticationResponse?: boolean;
+      extraValidFields?: string[];
     },
   ) {
     if (!!options?.protectedUser) {
       const validFields = ['id', 'username', 'displayName', 'avatar', 'bio'];
       if (!!options?.showRefreshToken) validFields.push('refreshToken');
+      if (!!options?.extraValidFields) {
+        validFields.push(...options.extraValidFields);
+      }
       for (const partialKey in partial) {
         if (!validFields.includes(partialKey)) {
           delete partial[partialKey];

@@ -479,6 +479,7 @@ export class ArticleController {
     }
     const user: User = await this.userService.findUserById(req.user.id);
     user.likes = user.likes.filter((el: Article) => el.id !== article.id);
+    await this.userService.saveUser(user);
     const serializedUser = new UserResDto(user);
     return serializedUser.likes;
   }

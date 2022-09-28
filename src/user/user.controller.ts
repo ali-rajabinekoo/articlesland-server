@@ -111,6 +111,7 @@ export class UserController {
     const user: User = await this.userService.findUserByUsername(username);
     return new UserResDto(user, {
       protectedUser: true,
+      extraValidFields: ['articles', 'followers', 'followings'],
     });
   }
 

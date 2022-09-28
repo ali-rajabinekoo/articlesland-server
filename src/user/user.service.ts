@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import {
   CreateUserQuery,
   LoginByCredentialDto,
@@ -73,9 +73,16 @@ export class UserService {
     });
   }
 
-  async findUserByUsername(username: string): Promise<User> {
+  async findUserByUsername(
+    username: string,
+    unpublished?: boolean,
+  ): Promise<User> {
+    const where: FindOptionsWhere<User> = {
+      username,
+      articles: { published: !unpublished },
+    };
     return this.usersRepository.findOne({
-      where: { username },
+      where,
       relations: this.getRelations(),
     });
   }
