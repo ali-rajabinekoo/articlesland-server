@@ -26,11 +26,12 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UnauthorizedDto } from '../auth/auth.dto';
 import { User } from '../user/user.entity';
 import { RequestFormat } from '../user/user.dto';
-import { NewCommentDto } from './comment.dto';
+import { CommentResDto, NewCommentDto } from './comment.dto';
 import { Comment } from './comment.entity';
 import { Article } from '../article/article.entity';
 import { ArticleService } from '../article/article.service';
 import { exceptionMessages } from '../libs/messages';
+import { ArticleResDto } from '../article/article.dto';
 
 @Controller('comment')
 @ApiBearerAuth()
@@ -60,7 +61,7 @@ export class CommentController {
     @Req() req: RequestFormat,
     @Body() body: NewCommentDto,
     @Param('articleId') articleId: number,
-  ): Promise<Comment> {
+  ): Promise<CommentResDto> {
     const article: Article = await this.articleService.findArticleById(
       articleId,
     );
@@ -74,11 +75,13 @@ export class CommentController {
       );
       if (!!comment) parentComment = comment;
     }
-    return this.commentService.addNewComment(
-      req.user as User,
-      article,
-      body,
-      parentComment,
+    return new CommentResDto(
+      await this.commentService.addNewComment(
+        req.user as User,
+        article,
+        body,
+        parentComment,
+      ),
     );
   }
 
@@ -96,7 +99,7 @@ export class CommentController {
     @Req() req: RequestFormat,
     @Param('articleId') articleId: number,
     @Param('commentId') commentId: number,
-  ): Promise<Comment[]> {
+  ): Promise<CommentResDto[]> {
     const comment: Comment = await this.commentService.findCommentById(
       commentId,
     );
@@ -114,8 +117,8 @@ export class CommentController {
       await this.commentService.saveComment(parentComment);
     }
     await this.commentService.removeComment(comment);
-    const article: Article = await this.articleService.findArticleById(
-      articleId,
+    const article: ArticleResDto = new ArticleResDto(
+      await this.articleService.findArticleById(articleId),
     );
     return article.comments;
   }

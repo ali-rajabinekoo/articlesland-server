@@ -6,6 +6,8 @@ import {
 } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
 import { ApiProperty } from '@nestjs/swagger';
 import { Article } from './article.entity';
+import { UserResDto } from '../user/user.dto';
+import { CommentResDto } from '../comment/comment.dto';
 
 export class ArticleDto {
   @ApiProperty({
@@ -67,3 +69,33 @@ export const PublishArticleSchema: SchemaObject | ReferenceObject = {
     },
   },
 };
+
+// Response Serialization DTOs
+
+export class ArticleResDto {
+  owner: UserResDto;
+  likes: UserResDto[];
+  comments: CommentResDto[];
+
+  constructor(
+    partial: Partial<Article | GetArticleResponse | ViewedArticleResponse>,
+  ) {
+    if (!!partial?.owner) {
+      this.owner = new UserResDto(partial.owner, {
+        protectedUser: true,
+      });
+    }
+    if (Array.isArray(partial?.likes) && partial?.likes.length !== 0) {
+      this.likes = partial.likes.map(
+        (el) =>
+          new UserResDto(el, {
+            protectedUser: true,
+          }),
+      );
+    }
+    if (Array.isArray(partial?.comments) && partial?.comments.length !== 0) {
+      this.comments = partial.comments.map((el) => new CommentResDto(el));
+    }
+    Object.assign(this, partial);
+  }
+}

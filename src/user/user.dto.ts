@@ -13,6 +13,9 @@ import { Exclude } from 'class-transformer';
 import { validationMessages } from '../libs/messages';
 import { User } from './user.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { ArticleResDto } from '../article/article.dto';
+import { Relation } from 'typeorm';
+import { Comment } from '../comment/comment.entity';
 
 export class UserJwtDto {
   id: number;
@@ -216,4 +219,91 @@ export class FollowDto {
   })
   @IsNotEmpty({ message: validationMessages.empty.follow })
   newFollowingUserId: number;
+}
+
+// Response Serialization DTOs
+
+export class UserResDto {
+  articles: ArticleResDto[];
+  likes: ArticleResDto[];
+  bookmarks: ArticleResDto[];
+  followers: UserResDto[];
+  followings: UserResDto[];
+
+  @Exclude({ toPlainOnly: true })
+  password: string;
+  @Exclude({ toPlainOnly: true })
+  activated: boolean;
+  @Exclude({ toPlainOnly: true })
+  comments: Relation<Comment[]>;
+
+  constructor(
+    partial: Partial<User>,
+    options?: {
+      protectedUser?: boolean;
+      showRefreshToken?: boolean;
+      authenticationResponse?: boolean;
+    },
+  ) {
+    if (!!options?.protectedUser) {
+      const validFields = ['id', 'username', 'displayName', 'avatar', 'bio'];
+      if (!!options?.showRefreshToken) validFields.push('refreshToken');
+      for (const partialKey in partial) {
+        if (!validFields.includes(partialKey)) {
+          delete partial[partialKey];
+        }
+      }
+    } else if (!options?.showRefreshToken) {
+      delete partial.refreshToken;
+    }
+    if (!!options?.authenticationResponse) {
+      const validFields = [
+        'id',
+        'username',
+        'displayName',
+        'phoneNumber',
+        'email',
+        'avatar',
+        'bio',
+        'refreshToken',
+        'created_at',
+        'updated_at',
+      ];
+      for (const partialKey in partial) {
+        if (!validFields.includes(partialKey)) {
+          delete partial[partialKey];
+        }
+      }
+    } else {
+      if (Array.isArray(partial?.bookmarks) && partial.bookmarks.length !== 0) {
+        this.bookmarks = partial.bookmarks.map((el) => new ArticleResDto(el));
+      }
+      if (Array.isArray(partial?.likes) && partial.likes.length !== 0) {
+        this.likes = partial.likes.map((el) => new ArticleResDto(el));
+      }
+      if (Array.isArray(partial?.articles) && partial.articles.length !== 0) {
+        this.articles = partial.articles.map((el) => new ArticleResDto(el));
+      }
+      if (Array.isArray(partial?.followers) && partial.followers.length !== 0) {
+        this.followers = partial.followers.map(
+          (el) =>
+            new UserResDto(el, {
+              protectedUser: true,
+            }),
+        );
+      }
+      if (
+        Array.isArray(partial?.followings) &&
+        partial.followings.length !== 0
+      ) {
+        this.followings = partial.followings.map(
+          (el) =>
+            new UserResDto(el, {
+              protectedUser: true,
+            }),
+        );
+      }
+    }
+    Object.assign(this, partial);
+  }
 }

@@ -8,11 +8,12 @@ import {
   Relation,
   JoinColumn,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { User } from '../user/user.entity';
 import { Category } from '../category/category.entity';
 import { Report } from '../report/report.entity';
-import { Like } from '../like/like.entity';
 import { Comment } from '../comment/comment.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
@@ -88,17 +89,9 @@ export class Article {
   })
   reports: Relation<Report[]>;
 
-  @OneToMany(() => Like, (like) => like.article, {
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  })
-  likes: Relation<Like[]>;
-
-  // @OneToMany(() => Bookmark, (bookmark) => bookmark.article, {
-  //   onDelete: 'CASCADE',
-  //   onUpdate: 'CASCADE',
-  // })
-  // bookmarks: Relation<Bookmark[]>;
+  @ManyToMany(() => User, (user) => user.id)
+  @JoinTable({ name: 'likes' })
+  likes: Relation<User[]>;
 
   @ApiProperty({ type: [Comment] })
   @OneToMany(() => Comment, (comment) => comment.article, {

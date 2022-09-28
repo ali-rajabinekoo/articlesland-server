@@ -38,9 +38,10 @@ import { UnauthorizedDto } from '../auth/auth.dto';
 import { ArticleService } from './article.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Article } from './article.entity';
-import { RequestFormat } from '../user/user.dto';
+import { RequestFormat, UserResDto } from '../user/user.dto';
 import {
   ArticleDto,
+  ArticleResDto,
   EditArticleDto,
   GetArticleResponse,
   PublishArticleDto,
@@ -81,16 +82,14 @@ export class ArticleController {
     type: Article,
   })
   @ApiNotFoundResponse({ description: 'Article not found.' })
-  async getMyArticle(
-    @Req() req: RequestFormat,
-  ): Promise<ViewedArticleResponse[]> {
+  async getMyArticle(@Req() req: RequestFormat): Promise<ArticleResDto[]> {
     const user: User = await this.userService.findUserById(req.user.id);
     const articles: Article[] = user.articles as Article[];
     return Promise.all(
-      articles.map(async (el: Article) => {
+      articles.map(async (el: Article): Promise<ArticleResDto> => {
         const newEl: ViewedArticleResponse = { ...el };
         newEl.todayViews = (await utils.views.getView(el.id)) || 0;
-        return newEl;
+        return new ArticleResDto(newEl);
       }),
     );
   }
@@ -105,7 +104,7 @@ export class ArticleController {
     @Param('id') id: number,
     @Param('username') username: string,
     @Ip() ipAddress: string,
-  ): Promise<GetArticleResponse> {
+  ): Promise<ArticleResDto> {
     const article: Article = await this.articleService.findArticleById(id);
     if (!article || !article.published || article.owner.username !== username) {
       throw new NotFoundException(exceptionMessages.notFound.article);
@@ -121,7 +120,7 @@ export class ArticleController {
         }
       })
       .catch();
-    return response;
+    return new ArticleResDto(response);
   }
 
   @Get(':id')
@@ -135,14 +134,14 @@ export class ArticleController {
   async getArticle(
     @Req() req: RequestFormat,
     @Param('id') id: number,
-  ): Promise<GetArticleResponse> {
+  ): Promise<ArticleResDto> {
     const article: Article = await this.articleService.findArticleById(id);
     if (!article || article.owner.id !== req.user.id) {
       throw new NotFoundException(exceptionMessages.notFound.article);
     }
     const response: GetArticleResponse = article as GetArticleResponse;
     response.body = await this.articleService.fetchArticleBody(article.bodyUrl);
-    return response;
+    return new ArticleResDto(response);
   }
 
   @Post()
@@ -160,13 +159,15 @@ export class ArticleController {
   async createNewArticle(
     @Req() req: RequestFormat,
     @Body() body: ArticleDto,
-  ): Promise<Article> {
+  ): Promise<ArticleResDto> {
     const duplicatedArticle: Article =
       await this.articleService.findArticleByTitle(body.title);
     if (!!duplicatedArticle) {
       throw new ConflictException(exceptionMessages.exist.articleTitle);
     }
-    return this.articleService.addNewArticle(body, req.user);
+    return new ArticleResDto(
+      await this.articleService.addNewArticle(body, req.user),
+    );
   }
 
   @Put('/:id')
@@ -192,7 +193,7 @@ export class ArticleController {
     @Req() req: RequestFormat,
     @Body() body: EditArticleDto,
     @Param('id') id: number,
-  ): Promise<GetArticleResponse> {
+  ): Promise<ArticleResDto> {
     const article: Article = await this.articleService.findArticleById(id);
     if (!article) {
       throw new NotFoundException(exceptionMessages.notFound.article);
@@ -210,7 +211,7 @@ export class ArticleController {
     const response: GetArticleResponse =
       await this.articleService.updateArticle(article, body);
     response.body = await this.articleService.fetchArticleBody(article.bodyUrl);
-    return response;
+    return new ArticleResDto(response);
   }
 
   @Patch('/:id')
@@ -253,7 +254,7 @@ export class ArticleController {
     @Body() body: PublishArticleDto,
     @Param('id') id: number,
     @UploadedFile() file: Express.Multer.File,
-  ): Promise<Article> {
+  ): Promise<ArticleResDto> {
     try {
       const article: Article = await this.articleService.findArticleById(id);
       (() => {
@@ -275,7 +276,12 @@ export class ArticleController {
           throw new NotFoundException(exceptionMessages.notFound.category);
         }
       })();
-      return this.articleService.publishArticle(article, file?.path, category);
+      const result = await this.articleService.publishArticle(
+        article,
+        file?.path,
+        category,
+      );
+      return new ArticleResDto(result);
     } catch (e) {
       try {
         const filePath: string = join(__dirname, `../../${file?.path}`);
@@ -349,7 +355,7 @@ export class ArticleController {
   async dropArticle(
     @Req() req: RequestFormat,
     @Param('id') id: number,
-  ): Promise<Article> {
+  ): Promise<ArticleResDto> {
     const article: Article = await this.articleService.findArticleById(id);
     if (!article) {
       throw new NotFoundException(exceptionMessages.notFound.article);
@@ -358,7 +364,7 @@ export class ArticleController {
       throw new ForbiddenException(exceptionMessages.permission.main);
     }
     article.published = false;
-    return this.articleService.saveArticle(article);
+    return new ArticleResDto(await this.articleService.saveArticle(article));
   }
 
   @Post('bookmark/:articleId')
@@ -375,17 +381,18 @@ export class ArticleController {
   async addBookmark(
     @Param('articleId') articleId: number,
     @Req() req: RequestFormat,
-  ): Promise<Article[]> {
+  ): Promise<ArticleResDto[]> {
     const article: Article = await this.articleService.findArticleById(
       articleId,
     );
-    if (!article || !article.published) {
+    if (!article || !article?.published) {
       throw new NotFoundException(exceptionMessages.notFound.article);
     }
     const user: User = await this.userService.findUserById(req.user.id);
     user.bookmarks.push(article);
     await this.userService.saveUser(user);
-    return user.bookmarks;
+    const serializedUser = new UserResDto(user);
+    return serializedUser.bookmarks;
   }
 
   @Delete('bookmark/:articleId')
@@ -402,11 +409,11 @@ export class ArticleController {
   async removeBookmark(
     @Param('articleId') articleId: number,
     @Req() req: RequestFormat,
-  ): Promise<Article[]> {
+  ): Promise<ArticleResDto[]> {
     const article: Article = await this.articleService.findArticleById(
       articleId,
     );
-    if (!article || !article.published) {
+    if (!article || !article?.published) {
       throw new NotFoundException(exceptionMessages.notFound.article);
     }
     const user: User = await this.userService.findUserById(req.user.id);
@@ -414,6 +421,65 @@ export class ArticleController {
       (el: Article) => el.id !== article.id,
     );
     await this.userService.saveUser(user);
-    return user.bookmarks;
+    const serializedUser = new UserResDto(user);
+    return serializedUser.bookmarks;
+  }
+
+  @Post('like/:articleId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: UnauthorizedDto,
+  })
+  @ApiOkResponse({
+    description: 'User likes this article.',
+    type: User,
+  })
+  async addLike(
+    @Param('articleId') articleId: number,
+    @Req() req: RequestFormat,
+  ): Promise<ArticleResDto[]> {
+    const article: Article = await this.articleService.findArticleById(
+      articleId,
+    );
+    if (!article || !article?.published) {
+      throw new NotFoundException(exceptionMessages.notFound.article);
+    }
+    const user: User = await this.userService.findUserById(req.user.id);
+    const existLike: Article = user.likes.find((el) => el.id === article.id);
+    if (!existLike) {
+      user.likes.push(article);
+      await this.userService.saveUser(user);
+    }
+    const serializedUser = new UserResDto(user);
+    return serializedUser.likes;
+  }
+
+  @Delete('like/:articleId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: UnauthorizedDto,
+  })
+  @ApiOkResponse({
+    description: 'User removed from article likes.',
+    type: User,
+  })
+  async removeLike(
+    @Param('articleId') articleId: number,
+    @Req() req: RequestFormat,
+  ): Promise<ArticleResDto[]> {
+    const article: Article = await this.articleService.findArticleById(
+      articleId,
+    );
+    if (!article || !article?.published) {
+      throw new NotFoundException(exceptionMessages.notFound.article);
+    }
+    const user: User = await this.userService.findUserById(req.user.id);
+    user.likes = user.likes.filter((el: Article) => el.id !== article.id);
+    const serializedUser = new UserResDto(user);
+    return serializedUser.likes;
   }
 }

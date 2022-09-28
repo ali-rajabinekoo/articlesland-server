@@ -1,9 +1,10 @@
 import { User } from '../user/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { UserResDto } from '../user/user.dto';
 
 export class AuthLoginDto {
   @ApiProperty({ type: User })
-  user: User;
+  user: UserResDto;
 
   @ApiProperty({ type: String, description: 'jwt token' })
   token: string;
