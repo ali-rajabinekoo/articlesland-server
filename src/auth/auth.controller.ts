@@ -19,6 +19,7 @@ import {
   SendLoginCodeDto,
   UserUniqueInfoDto,
   LoginByRefreshTokenDto,
+  UserResDto,
 } from '../user/user.dto';
 import { UserService } from '../user/user.service';
 import { User } from '../user/user.entity';
@@ -162,7 +163,9 @@ export class AuthController {
       throw new NotFoundException(exceptionMessages.notFound.user);
     }
     return {
-      user: await this.userService.findUserById(user.id),
+      user: new UserResDto(await this.userService.findUserById(user.id), {
+        authenticationResponse: true,
+      }),
       token: await this.authService.login(user),
     };
   }
@@ -185,7 +188,9 @@ export class AuthController {
       throw new NotFoundException(exceptionMessages.notFound.user);
     }
     return {
-      user: await this.userService.findUserById(user.id),
+      user: new UserResDto(await this.userService.findUserById(user.id), {
+        authenticationResponse: true,
+      }),
       token: await this.authService.login(user),
     };
   }
@@ -250,7 +255,9 @@ export class AuthController {
     }
     await utils.verification.removeVerifyOpportunity(user.phoneNumber);
     return {
-      user: await this.userService.findUserById(user.id),
+      user: new UserResDto(await this.userService.findUserById(user.id), {
+        authenticationResponse: true,
+      }),
       token: await this.authService.login(user),
     };
   }

@@ -7,6 +7,9 @@ import {
   MinLength,
 } from 'class-validator';
 import { validationMessages } from '../libs/messages';
+import { ArticleResDto } from '../article/article.dto';
+import { Comment } from './comment.entity';
+import { UserResDto } from '../user/user.dto';
 
 export class NewCommentDto {
   @ApiProperty({
@@ -46,3 +49,22 @@ export const commentSchemaApiDocument = {
   },
   created_at: new Date(),
 };
+
+// Response Serialization DTOs
+
+export class CommentResDto {
+  owner: UserResDto;
+  article: ArticleResDto;
+
+  constructor(partial: Partial<Comment>) {
+    if (!!partial?.owner) {
+      this.owner = new UserResDto(partial.owner, {
+        protectedUser: true,
+      });
+    }
+    if (!!partial?.article) {
+      this.article = new ArticleResDto(partial.article);
+    }
+    Object.assign(this, partial);
+  }
+}

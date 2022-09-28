@@ -26,6 +26,7 @@ import {
   SendEmailVerificationCodeDto,
   SendLoginCodeDto,
   UpdateUserInfo,
+  UserResDto,
   VerifyByCodeDto,
 } from './user.dto';
 import { User } from './user.entity';
@@ -75,8 +76,8 @@ export class UserController {
     description: 'Unauthorized',
     type: UnauthorizedDto,
   })
-  async getUserInformation(@Req() req: RequestFormat): Promise<User> {
-    return this.userService.findUserById(req.user.id);
+  async getUserInformation(@Req() req: RequestFormat): Promise<UserResDto> {
+    return new UserResDto(await this.userService.findUserById(req.user.id));
   }
 
   // @Get(':id')
@@ -106,19 +107,11 @@ export class UserController {
   })
   async getUserInformationById(
     @Param('username') username: string,
-  ): Promise<User> {
+  ): Promise<UserResDto> {
     const user: User = await this.userService.findUserByUsername(username);
-    delete user.phoneNumber;
-    delete user.email;
-    delete user.updated_at;
-    delete user.created_at;
-    delete user.refreshToken;
-    delete user.bookmarks;
-    delete user.comments;
-    delete user.likes;
-    delete user.reports;
-    delete user.selectedCategories;
-    return user;
+    return new UserResDto(user, {
+      protectedUser: true,
+    });
   }
 
   @Patch('email/send')
@@ -182,7 +175,7 @@ export class UserController {
   async verifyEmailByCode(
     @Body() body: VerifyByCodeDto,
     @Req() req: RequestFormat,
-  ): Promise<User> {
+  ): Promise<UserResDto> {
     const { userId, emailAddress }: { userId: string; emailAddress: string } =
       await utils.verification.getUserInfoByCode(body.code);
     if (!userId || !emailAddress) {
@@ -197,7 +190,7 @@ export class UserController {
       throw new ForbiddenException(exceptionMessages.invalid.code);
     }
     user.email = emailAddress;
-    return this.userService.saveUser(user);
+    return new UserResDto(await this.userService.saveUser(user));
   }
 
   @Patch('mobile/send')
@@ -272,7 +265,7 @@ export class UserController {
   async verifyMobileByCode(
     @Body() userInfo: VerifyByCodeDto,
     @Req() req: RequestFormat,
-  ): Promise<User> {
+  ): Promise<UserResDto> {
     const { userId, mobile }: { userId: string; mobile: string } =
       await utils.verification.getUserInfoByMobileVerifyCode(userInfo.code);
     if (!userId || !mobile) {
@@ -287,7 +280,7 @@ export class UserController {
       throw new ForbiddenException(exceptionMessages.invalid.code);
     }
     user.phoneNumber = utils.verification.normalizePhoneNumber(mobile);
-    return this.userService.saveUser(user);
+    return new UserResDto(await this.userService.saveUser(user));
   }
 
   @Patch('avatar')
@@ -330,14 +323,14 @@ export class UserController {
   async uploadAvatar(
     @UploadedFile() file: Express.Multer.File,
     @Req() req: RequestFormat,
-  ): Promise<User> {
+  ): Promise<UserResDto> {
     if (!file) {
       throw new BadRequestException(validationMessages.empty.avatar);
     }
     const url: string = file.path.replace('public', '/statics');
     const user: User = req.user;
     user.avatar = url;
-    return await this.userService.saveUser(user);
+    return new UserResDto(await this.userService.saveUser(user));
   }
 
   @Put()
@@ -368,7 +361,7 @@ export class UserController {
   async updateProfile(
     @Body() userInfo: UpdateUserInfo,
     @Req() req: RequestFormat,
-  ): Promise<User> {
+  ): Promise<UserResDto> {
     if (!!userInfo.password && userInfo.password !== userInfo.repeatPassword) {
       throw new BadRequestException(validationMessages.invalid.repeatPassword);
     }
@@ -379,7 +372,7 @@ export class UserController {
     if (!!userInfo.password) {
       user.password = await bcrypt.hash(userInfo.password, 10);
     }
-    return this.userService.saveUser(user);
+    return new UserResDto(await this.userService.saveUser(user));
   }
 
   @Post('follow')
@@ -396,7 +389,7 @@ export class UserController {
   async follow(
     @Body() body: FollowDto,
     @Req() req: RequestFormat,
-  ): Promise<User> {
+  ): Promise<UserResDto> {
     const follower: User = req.user;
     const following: User = await this.userService.findUserById(
       body.newFollowingUserId,
@@ -408,7 +401,7 @@ export class UserController {
     await this.userService.saveUser(follower);
     following.followers.push(follower);
     await this.userService.saveUser(following);
-    return this.userService.findUserById(follower.id);
+    return new UserResDto(await this.userService.findUserById(follower.id));
   }
 
   @Post('unfollow')
@@ -425,7 +418,7 @@ export class UserController {
   async unfollow(
     @Body() body: FollowDto,
     @Req() req: RequestFormat,
-  ): Promise<User> {
+  ): Promise<UserResDto> {
     const follower: User = req.user;
     const following: User = await this.userService.findUserById(
       body.newFollowingUserId,
@@ -441,6 +434,6 @@ export class UserController {
       return user.id !== follower.id;
     });
     await this.userService.saveUser(following);
-    return this.userService.findUserById(follower.id);
+    return new UserResDto(await this.userService.findUserById(follower.id));
   }
 }

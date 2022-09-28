@@ -13,7 +13,6 @@ import * as bcrypt from 'bcrypt';
 import utils from '../libs/utils';
 import { MellipayamakResponse } from '../libs/schemas';
 import request from '../libs/request';
-import { Article } from '../article/article.entity';
 
 @Injectable()
 export class UserService {
@@ -22,55 +21,23 @@ export class UserService {
     private usersRepository: Repository<User>,
   ) {}
 
-  private formatUsersFields(followedUsers: User[]): User[] {
-    return followedUsers.map((el: User) => {
-      delete el.refreshToken;
-      delete el.email;
-      delete el.phoneNumber;
-      delete el.password;
-      delete el.activated;
-      delete el.created_at;
-      delete el.updated_at;
-      return el;
-    });
-  }
-
-  private formatSingleUserFields(followedUser: User): User {
-    const user: User = { ...followedUser } as User;
-    delete user.refreshToken;
-    delete user.email;
-    delete user.phoneNumber;
-    delete user.password;
-    delete user.activated;
-    delete user.created_at;
-    delete user.updated_at;
-    return user;
-  }
-
-  private normalizeAnotherUserFields(user: User): User {
-    if (user === null) return null;
-    if (!!user?.followings && user?.followings.length !== 0) {
-      user.followings = this.formatUsersFields(user.followings);
-    }
-    if (!!user.followers && user?.followers.length !== 0) {
-      user.followers = this.formatUsersFields(user.followers);
-    }
-    if (!!user.bookmarks && user?.bookmarks.length !== 0) {
-      user.bookmarks = user.bookmarks.map((el: Article) => {
-        const newEl: Article = { ...el } as Article;
-        newEl.owner = this.formatSingleUserFields(el.owner);
-        return newEl;
-      });
-    }
-    if (!!user.articles && user?.articles.length !== 0) {
-      user.articles = user.articles.map((el: Article) => {
-        const newEl: Article = { ...el } as Article;
-        newEl.owner = this.formatSingleUserFields(el.owner);
-        return newEl;
-      });
-    }
-    return user;
-  }
+  private getRelations = () => {
+    return [
+      'articles',
+      'articles.category',
+      'articles.owner',
+      'followers',
+      'followings',
+      'reports',
+      'likes',
+      'likes.owner',
+      'likes.category',
+      'bookmarks',
+      'bookmarks.category',
+      'bookmarks.owner',
+      'selectedCategories',
+    ];
+  };
 
   async findUserByUniqueInfo(body: UserUniqueInfoDto): Promise<User> {
     const user: User = await this.usersRepository.findOneBy({
@@ -100,87 +67,31 @@ export class UserService {
   }
 
   async findUserById(id: number): Promise<User> {
-    return this.normalizeAnotherUserFields(
-      await this.usersRepository.findOne({
-        where: { id },
-        relations: [
-          'articles',
-          'articles.category',
-          'articles.owner',
-          'followers',
-          'followings',
-          'reports',
-          'likes',
-          'bookmarks',
-          'bookmarks.category',
-          'bookmarks.owner',
-          'selectedCategories',
-        ],
-      }),
-    );
+    return this.usersRepository.findOne({
+      where: { id },
+      relations: this.getRelations(),
+    });
   }
 
   async findUserByUsername(username: string): Promise<User> {
-    const user: User = this.normalizeAnotherUserFields(
-      await this.usersRepository.findOne({
-        where: { username },
-        relations: [
-          'articles',
-          'articles.category',
-          'articles.owner',
-          'followers',
-          'followings',
-          'reports',
-          'likes',
-          'bookmarks',
-          'bookmarks.category',
-          'bookmarks.owner',
-          'selectedCategories',
-        ],
-      }),
-    );
-    user.articles = user.articles.filter((el) => el.published);
-    return user;
+    return this.usersRepository.findOne({
+      where: { username },
+      relations: this.getRelations(),
+    });
   }
 
   async findUserByEmail(email: string): Promise<User> {
-    return this.normalizeAnotherUserFields(
-      await this.usersRepository.findOne({
-        where: { email },
-        relations: [
-          'articles',
-          'articles.owner',
-          'followers',
-          'followings',
-          'reports',
-          'likes',
-          'bookmarks',
-          'bookmarks.category',
-          'bookmarks.owner',
-          'selectedCategories',
-        ],
-      }),
-    );
+    return this.usersRepository.findOne({
+      where: { email },
+      relations: this.getRelations(),
+    });
   }
 
   async findUserByRefreshToken(refreshToken: string): Promise<User> {
-    return this.normalizeAnotherUserFields(
-      await this.usersRepository.findOne({
-        where: { refreshToken },
-        relations: [
-          'articles',
-          'articles.owner',
-          'followers',
-          'followings',
-          'reports',
-          'likes',
-          'bookmarks',
-          'bookmarks.category',
-          'bookmarks.owner',
-          'selectedCategories',
-        ],
-      }),
-    );
+    return this.usersRepository.findOne({
+      where: { refreshToken },
+      relations: this.getRelations(),
+    });
   }
 
   async verifyUser(user: User): Promise<void> {

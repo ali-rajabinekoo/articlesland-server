@@ -9,10 +9,8 @@ import { User } from './user/user.entity';
 import { Category } from './category/category.entity';
 import { Article } from './article/article.entity';
 import { CommentModule } from './comment/comment.module';
-import { LikeModule } from './like/like.module';
 import { Comment } from './comment/comment.entity';
 import { ReportModule } from './report/report.module';
-import { Like } from './like/like.entity';
 import { Report } from './report/report.entity';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -27,7 +25,7 @@ export const AppModuleMetadata = {
       username: database.username,
       password: database.password,
       database: database.dbname,
-      entities: [User, Category, Article, Comment, Like, Report],
+      entities: [User, Category, Article, Comment, Report],
       synchronize: true,
       timezone: 'Asia/Tehran',
     }),
@@ -40,7 +38,6 @@ export const AppModuleMetadata = {
     ArticleModule,
     CategoryModule,
     CommentModule,
-    LikeModule,
     ReportModule,
     DraftModule,
   ],

@@ -13,7 +13,6 @@ import {
 import { Exclude } from 'class-transformer';
 import { Article } from '../article/article.entity';
 import { Report } from '../report/report.entity';
-import { Like } from '../like/like.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Category } from '../category/category.entity';
 import { Comment } from '../comment/comment.entity';
@@ -117,26 +116,17 @@ export class User {
   })
   reports: Relation<Report[]>;
 
-  @ApiProperty({ type: [Article] })
-  @OneToMany(() => Like, (like) => like.owner, {
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  })
-  likes: Relation<Like[]>;
+  @ManyToMany(() => Article, (article) => article.id)
+  @JoinTable({ name: 'likes' })
+  likes: Relation<Article[]>;
 
   @ApiProperty({ type: [Article] })
-  @ManyToMany(() => Article, (article) => article.id, {
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  })
+  @ManyToMany(() => Article, (article) => article.id)
   @JoinTable({ name: 'bookmarks' })
   bookmarks: Relation<Article[]>;
 
   @ApiProperty({ type: [Category] })
-  @ManyToMany(() => Category, (category) => category.id, {
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  })
+  @ManyToMany(() => Category, (category) => category.id)
   @JoinTable({ name: 'user_categories' })
   selectedCategories: Relation<Category[]>;
 
