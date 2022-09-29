@@ -27,3 +27,9 @@ export class UnauthorizedDto {
   @ApiProperty({ type: String, default: 'Unauthorized' })
   message: string;
 }
+
+export interface payloadType {
+  id: number;
+  iat?: number;
+  exp?: number;
+}

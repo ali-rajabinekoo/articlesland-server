@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Article } from './article.entity';
-import { Repository } from 'typeorm';
+import { ArrayContainedBy, Repository } from 'typeorm';
 import { ArticleDto, EditArticleDto } from './article.dto';
 import * as fs from 'fs/promises';
 import { join } from 'path';
@@ -178,5 +178,12 @@ export class ArticleService {
       } catch {}
     }
     await this.articlesRepository.remove(article);
+  }
+
+  async getArticlesByCategory(categoryId: number, user: User) {
+    return this.articlesRepository.find({
+      where: { likes: ArrayContainedBy([user]) },
+      relations: ['category', 'likes'],
+    });
   }
 }

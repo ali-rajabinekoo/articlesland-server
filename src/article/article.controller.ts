@@ -18,6 +18,7 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  Headers,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -42,6 +43,7 @@ import { RequestFormat, UserResDto } from '../user/user.dto';
 import {
   ArticleDto,
   ArticleResDto,
+  CategoryArticlesDto,
   EditArticleDto,
   GetArticleResponse,
   PublishArticleDto,
@@ -59,6 +61,9 @@ import { join } from 'path';
 import utils from '../libs/utils/index';
 import { UserService } from '../user/user.service';
 import { User } from '../user/user.entity';
+import { Category } from '../category/category.entity';
+import { CategoryResDto } from '../category/categories.dto';
+import { AuthService } from '../auth/auth.service';
 
 @Controller('article')
 @ApiTags('article')
@@ -72,26 +77,47 @@ export class ArticleController {
     private articleService: ArticleService,
     private categoryService: CategoryService,
     private userService: UserService,
+    private authService: AuthService,
   ) {}
 
-  @Get('/mine')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @Get('/category/:categoryId')
   @ApiCreatedResponse({
-    description: 'Returns article.',
+    description: 'Returns articles of category.',
     type: Article,
   })
-  @ApiNotFoundResponse({ description: 'Article not found.' })
-  async getMyArticle(@Req() req: RequestFormat): Promise<ArticleResDto[]> {
-    const user: User = await this.userService.findUserById(req.user.id);
-    const articles: Article[] = user.articles as Article[];
-    return Promise.all(
-      articles.map(async (el: Article): Promise<ArticleResDto> => {
-        const newEl: ViewedArticleResponse = { ...el };
-        newEl.todayViews = (await utils.views.getView(el.id)) || 0;
-        return new ArticleResDto(newEl);
-      }),
+  @ApiNotFoundResponse({ description: 'Category not found.' })
+  async getArticlesByCategory(
+    @Req() req: RequestFormat,
+    @Headers() headers: any,
+    @Param('categoryId') categoryId: number,
+  ): Promise<CategoryArticlesDto> {
+    const userId: number = await this.authService.authorization(headers);
+    let user: User | null = null;
+    let likes: ArticleResDto[];
+    let bookmarks: ArticleResDto[];
+    let founded: number[] | undefined = undefined;
+    if (!!userId) {
+      user = await this.userService.findUserById(userId);
+      if (Array.isArray(user?.likes) && user?.likes.length !== 0) {
+        founded = [...user.likes.map((el) => el.id)];
+        likes = user.likes.map((el) => new ArticleResDto(el));
+      }
+      if (Array.isArray(user?.bookmarks) && user?.bookmarks.length !== 0) {
+        founded = [...founded, ...user.bookmarks.map((el) => el.id)];
+        bookmarks = user.bookmarks.map((el) => new ArticleResDto(el));
+      }
+    }
+    const category: Category = await this.categoryService.getArticlesOfCategory(
+      categoryId,
+      founded,
     );
+    const formattedCategory: CategoryResDto = new CategoryResDto(category);
+    const response: CategoryArticlesDto = {
+      articles: formattedCategory.articles,
+    };
+    if (!!bookmarks) response.bookmarks = bookmarks;
+    if (!!likes) response.likes = likes;
+    return response;
   }
 
   @Get('/public/:username/:id')
@@ -121,6 +147,26 @@ export class ArticleController {
       })
       .catch();
     return new ArticleResDto(response);
+  }
+
+  @Get('/mine')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    description: 'Returns article.',
+    type: Article,
+  })
+  @ApiNotFoundResponse({ description: 'Article not found.' })
+  async getMyArticle(@Req() req: RequestFormat): Promise<ArticleResDto[]> {
+    const user: User = await this.userService.findUserById(req.user.id);
+    const articles: Article[] = user.articles as Article[];
+    return Promise.all(
+      articles.map(async (el: Article): Promise<ArticleResDto> => {
+        const newEl: ViewedArticleResponse = { ...el };
+        newEl.todayViews = (await utils.views.getView(el.id)) || 0;
+        return new ArticleResDto(newEl);
+      }),
+    );
   }
 
   @Get(':id')
