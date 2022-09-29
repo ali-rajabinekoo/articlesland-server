@@ -260,53 +260,30 @@ export class UserResDto {
     } else if (!options?.showRefreshToken) {
       delete partial.refreshToken;
     }
-    if (!!options?.authenticationResponse) {
-      const validFields = [
-        'id',
-        'username',
-        'displayName',
-        'phoneNumber',
-        'email',
-        'avatar',
-        'bio',
-        'refreshToken',
-        'created_at',
-        'updated_at',
-      ];
-      for (const partialKey in partial) {
-        if (!validFields.includes(partialKey)) {
-          delete partial[partialKey];
-        }
-      }
-    } else {
-      if (Array.isArray(partial?.bookmarks) && partial.bookmarks.length !== 0) {
-        this.bookmarks = partial.bookmarks.map((el) => new ArticleResDto(el));
-      }
-      if (Array.isArray(partial?.likes) && partial.likes.length !== 0) {
-        this.likes = partial.likes.map((el) => new ArticleResDto(el));
-      }
-      if (Array.isArray(partial?.articles) && partial.articles.length !== 0) {
-        this.articles = partial.articles.map((el) => new ArticleResDto(el));
-      }
-      if (Array.isArray(partial?.followers) && partial.followers.length !== 0) {
-        this.followers = partial.followers.map(
-          (el) =>
-            new UserResDto(el, {
-              protectedUser: true,
-            }),
-        );
-      }
-      if (
-        Array.isArray(partial?.followings) &&
-        partial.followings.length !== 0
-      ) {
-        this.followings = partial.followings.map(
-          (el) =>
-            new UserResDto(el, {
-              protectedUser: true,
-            }),
-        );
-      }
+    if (Array.isArray(partial?.bookmarks) && partial.bookmarks.length !== 0) {
+      this.bookmarks = partial.bookmarks.map((el) => new ArticleResDto(el));
+    }
+    if (Array.isArray(partial?.likes) && partial.likes.length !== 0) {
+      this.likes = partial.likes.map((el) => new ArticleResDto(el));
+    }
+    if (Array.isArray(partial?.articles) && partial.articles.length !== 0) {
+      this.articles = partial.articles.map((el) => new ArticleResDto(el));
+    }
+    if (Array.isArray(partial?.followers) && partial.followers.length !== 0) {
+      this.followers = partial.followers.map(
+        (el) =>
+          new UserResDto(el, {
+            protectedUser: true,
+          }),
+      );
+    }
+    if (Array.isArray(partial?.followings) && partial.followings.length !== 0) {
+      this.followings = partial.followings.map(
+        (el) =>
+          new UserResDto(el, {
+            protectedUser: true,
+          }),
+      );
     }
     Object.assign(this, partial);
   }

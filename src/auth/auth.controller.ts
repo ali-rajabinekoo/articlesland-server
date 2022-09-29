@@ -164,7 +164,7 @@ export class AuthController {
     }
     return {
       user: new UserResDto(await this.userService.findUserById(user.id), {
-        authenticationResponse: true,
+        showRefreshToken: true,
       }),
       token: await this.authService.login(user),
     };
@@ -189,7 +189,7 @@ export class AuthController {
     }
     return {
       user: new UserResDto(await this.userService.findUserById(user.id), {
-        authenticationResponse: true,
+        showRefreshToken: true,
       }),
       token: await this.authService.login(user),
     };
@@ -256,7 +256,7 @@ export class AuthController {
     await utils.verification.removeVerifyOpportunity(user.phoneNumber);
     return {
       user: new UserResDto(await this.userService.findUserById(user.id), {
-        authenticationResponse: true,
+        showRefreshToken: true,
       }),
       token: await this.authService.login(user),
     };
