@@ -19,6 +19,7 @@ import {
   UseGuards,
   UseInterceptors,
   Headers,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -61,9 +62,8 @@ import { join } from 'path';
 import utils from '../libs/utils/index';
 import { UserService } from '../user/user.service';
 import { User } from '../user/user.entity';
-import { Category } from '../category/category.entity';
-import { CategoryResDto } from '../category/categories.dto';
 import { AuthService } from '../auth/auth.service';
+import { takeArticleLimit } from '../libs/config';
 
 @Controller('article')
 @ApiTags('article')
@@ -80,7 +80,7 @@ export class ArticleController {
     private authService: AuthService,
   ) {}
 
-  @Get('/category/:categoryId')
+  @Get('/category')
   @ApiCreatedResponse({
     description: 'Returns articles of category.',
     type: Article,
@@ -89,31 +89,50 @@ export class ArticleController {
   async getArticlesByCategory(
     @Req() req: RequestFormat,
     @Headers() headers: any,
-    @Param('categoryId') categoryId: number,
+    @Query('categories') categoryId?: string | undefined,
+    @Query('page') pageNumber?: number | undefined,
   ): Promise<CategoryArticlesDto> {
+    // queries
+    const categories: number[] | undefined = categoryId
+      ?.split(',')
+      .filter((el) => !!el)
+      .map((el) => Number(el));
+    const page: number = isNaN(Number(pageNumber)) ? 0 : pageNumber;
     const userId: number = await this.authService.authorization(headers);
     let user: User | null = null;
-    let likes: ArticleResDto[];
-    let bookmarks: ArticleResDto[];
-    let founded: number[] | undefined = undefined;
+    const likes: object = {};
+    const bookmarks: object = {};
     if (!!userId) {
       user = await this.userService.findUserById(userId);
       if (Array.isArray(user?.likes) && user?.likes.length !== 0) {
-        founded = [...user.likes.map((el) => el.id)];
-        likes = user.likes.map((el) => new ArticleResDto(el));
+        await Promise.all(
+          user.likes.map(async (el: Article): Promise<void> => {
+            likes[el.id] = true;
+          }),
+        );
       }
       if (Array.isArray(user?.bookmarks) && user?.bookmarks.length !== 0) {
-        founded = [...founded, ...user.bookmarks.map((el) => el.id)];
-        bookmarks = user.bookmarks.map((el) => new ArticleResDto(el));
+        await Promise.all(
+          user.bookmarks.map(async (el: Article): Promise<void> => {
+            bookmarks[el.id] = true;
+          }),
+        );
       }
     }
-    const category: Category = await this.categoryService.getArticlesOfCategory(
-      categoryId,
-      founded,
+    const [articles, totalArticles] =
+      await this.articleService.getArticlesByCategory(
+        categories?.length === 0 ? undefined : categories,
+        page,
+      );
+    const formattedArticles: ArticleResDto[] = await Promise.all(
+      articles.map(async (el: Article) => {
+        return new ArticleResDto(el);
+      }),
     );
-    const formattedCategory: CategoryResDto = new CategoryResDto(category);
     const response: CategoryArticlesDto = {
-      articles: formattedCategory.articles,
+      articles: formattedArticles,
+      totalPages: Math.ceil(totalArticles / takeArticleLimit),
+      count: totalArticles,
     };
     if (!!bookmarks) response.bookmarks = bookmarks;
     if (!!likes) response.likes = likes;

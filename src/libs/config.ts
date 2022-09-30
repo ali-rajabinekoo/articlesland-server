@@ -43,3 +43,6 @@ export const codeExpire = 120000;
 
 // 2 minutes
 export const emailCodeExpire = 120000;
+
+// 12 article per page
+export const takeArticleLimit = 12;

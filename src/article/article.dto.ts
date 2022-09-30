@@ -71,9 +71,11 @@ export const PublishArticleSchema: SchemaObject | ReferenceObject = {
 };
 
 export class CategoryArticlesDto {
-  bookmarks?: ArticleResDto[];
   articles: ArticleResDto[];
-  likes?: ArticleResDto[];
+  totalPages?: number;
+  bookmarks?: object;
+  likes?: object;
+  count?: number;
 }
 
 // Response Serialization DTOs
