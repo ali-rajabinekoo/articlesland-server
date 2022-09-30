@@ -34,6 +34,4 @@ export class CategoryService {
   async getAllCategories(): Promise<Category[]> {
     return this.categoryRepository.find({ relations: ['articles'] });
   }
-
-  async;
 }

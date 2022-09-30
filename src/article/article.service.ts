@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Article } from './article.entity';
-import { Repository } from 'typeorm';
+import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
 import { ArticleDto, EditArticleDto } from './article.dto';
 import * as fs from 'fs/promises';
 import { join } from 'path';
@@ -9,6 +9,7 @@ import { v4 as uuidV4 } from 'uuid';
 import { Category } from '../category/category.entity';
 import { User } from '../user/user.entity';
 import { htmlToText } from 'html-to-text';
+import { takeArticleLimit } from '../libs/config';
 
 @Injectable()
 export class ArticleService {
@@ -178,5 +179,21 @@ export class ArticleService {
       } catch {}
     }
     await this.articlesRepository.remove(article);
+  }
+
+  async getArticlesByCategory(
+    categories: number[] | undefined,
+    page?: number,
+  ): Promise<[Article[], number]> {
+    let where: FindOptionsWhere<Article> = { published: true };
+    if (!!categories) where = { ...where, category: { id: In(categories) } };
+    const options: FindManyOptions = {
+      relations: ['category', 'likes', 'owner'],
+      order: { created_at: 'desc' },
+      skip: takeArticleLimit * (page || 1) - takeArticleLimit || 0,
+      take: takeArticleLimit,
+    };
+    if (!!where) options.where = where;
+    return this.articlesRepository.findAndCount(options);
   }
 }
