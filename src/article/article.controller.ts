@@ -63,7 +63,7 @@ import utils from '../libs/utils/index';
 import { UserService } from '../user/user.service';
 import { User } from '../user/user.entity';
 import { AuthService } from '../auth/auth.service';
-import { takeArticleLimit } from '../libs/config';
+import { getArticleLimit } from '../libs/config';
 
 @Controller('article')
 @ApiTags('article')
@@ -80,7 +80,7 @@ export class ArticleController {
     private authService: AuthService,
   ) {}
 
-  @Get('/category')
+  @Get('/explore')
   @ApiCreatedResponse({
     description: 'Returns articles of category.',
     type: Article,
@@ -90,14 +90,35 @@ export class ArticleController {
     @Req() req: RequestFormat,
     @Headers() headers: any,
     @Query('categories') categoryId?: string | undefined,
+    @Query('users') usersId?: string | undefined,
     @Query('page') pageNumber?: number | undefined,
+    @Query('keyword') keywordQuery?: string | undefined,
+    @Query('mostPopular') mostPopularQuery?: number | undefined,
   ): Promise<CategoryArticlesDto> {
     // queries
     const categories: number[] | undefined = categoryId
       ?.split(',')
-      .filter((el) => !!el)
-      .map((el) => Number(el));
+      ?.filter((el) => !!el)
+      ?.map((el) => Number(el));
+    const newUsersId: number[] | undefined = usersId
+      ?.split(',')
+      ?.filter((el) => !!el)
+      ?.map((el) => Number(el));
     const page: number = isNaN(Number(pageNumber)) ? 0 : pageNumber;
+    const keyword: string | undefined = keywordQuery?.trim() || undefined;
+    const mostPopular = Boolean(mostPopularQuery);
+
+    const users: number[] | undefined = !!newUsersId
+      ? (
+          await Promise.all(
+            newUsersId.map(async (el: number) => {
+              const user: User = await this.userService.findUserById(el);
+              if (!!user) return user.id;
+              return null;
+            }),
+          )
+        ).filter((el) => el !== null)
+      : undefined;
     const userId: number = await this.authService.authorization(headers);
     let user: User | null = null;
     const likes: object = {};
@@ -122,7 +143,10 @@ export class ArticleController {
     const [articles, totalArticles] =
       await this.articleService.getArticlesByCategory(
         categories?.length === 0 ? undefined : categories,
+        users?.length === 0 ? undefined : users,
         page,
+        keyword,
+        mostPopular,
       );
     const formattedArticles: ArticleResDto[] = await Promise.all(
       articles.map(async (el: Article) => {
@@ -131,7 +155,7 @@ export class ArticleController {
     );
     const response: CategoryArticlesDto = {
       articles: formattedArticles,
-      totalPages: Math.ceil(totalArticles / takeArticleLimit),
+      totalPages: Math.ceil(totalArticles / getArticleLimit),
       count: totalArticles,
     };
     if (!!bookmarks) response.bookmarks = bookmarks;
@@ -181,7 +205,7 @@ export class ArticleController {
     const articles: Article[] = user.articles as Article[];
     return Promise.all(
       articles.map(async (el: Article): Promise<ArticleResDto> => {
-        const newEl: ViewedArticleResponse = { ...el };
+        const newEl: ViewedArticleResponse = { ...el } as ViewedArticleResponse;
         newEl.todayViews = (await utils.views.getView(el.id)) || 0;
         return new ArticleResDto(newEl);
       }),
@@ -505,15 +529,15 @@ export class ArticleController {
     @Param('articleId') articleId: number,
     @Req() req: RequestFormat,
   ): Promise<ArticleResDto[]> {
-    const article: Article = await this.articleService.findArticleById(
-      articleId,
-    );
+    let article: Article = await this.articleService.findArticleById(articleId);
     if (!article || !article?.published) {
       throw new NotFoundException(exceptionMessages.notFound.article);
     }
     const user: User = await this.userService.findUserById(req.user.id);
     const existLike: Article = user.likes.find((el) => el.id === article.id);
     if (!existLike) {
+      article.likesNumber = (article.likesNumber || 0) + 1;
+      article = await this.articleService.saveArticle(article);
       user.likes.push(article);
       await this.userService.saveUser(user);
     }
@@ -543,8 +567,16 @@ export class ArticleController {
       throw new NotFoundException(exceptionMessages.notFound.article);
     }
     const user: User = await this.userService.findUserById(req.user.id);
-    user.likes = user.likes.filter((el: Article) => el.id !== article.id);
-    await this.userService.saveUser(user);
+    const existLikeIndex: number = user.likes.findIndex(
+      (el: Article) => el.id === article.id,
+    );
+    if (existLikeIndex > -1) {
+      const articleInstance: Article = user.likes[existLikeIndex];
+      articleInstance.likesNumber = (articleInstance.likesNumber || 0) - 1;
+      await this.articleService.saveArticle(articleInstance);
+      user.likes.splice(existLikeIndex, 1);
+      await this.userService.saveUser(user);
+    }
     const serializedUser = new UserResDto(user);
     return serializedUser.likes;
   }

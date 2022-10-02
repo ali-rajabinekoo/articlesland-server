@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Article } from './article.entity';
-import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
+import {
+  FindManyOptions,
+  FindOptionsWhere,
+  ILike,
+  In,
+  Repository,
+} from 'typeorm';
 import { ArticleDto, EditArticleDto } from './article.dto';
 import * as fs from 'fs/promises';
 import { join } from 'path';
@@ -9,7 +15,7 @@ import { v4 as uuidV4 } from 'uuid';
 import { Category } from '../category/category.entity';
 import { User } from '../user/user.entity';
 import { htmlToText } from 'html-to-text';
-import { takeArticleLimit } from '../libs/config';
+import { getArticleLimit } from '../libs/config';
 
 @Injectable()
 export class ArticleService {
@@ -183,17 +189,39 @@ export class ArticleService {
 
   async getArticlesByCategory(
     categories: number[] | undefined,
-    page?: number,
+    users: number[] | undefined,
+    page?: number | undefined,
+    keyword?: string | undefined,
+    mostPopular?: boolean,
   ): Promise<[Article[], number]> {
-    let where: FindOptionsWhere<Article> = { published: true };
-    if (!!categories) where = { ...where, category: { id: In(categories) } };
+    const wheres: { [key: string]: FindOptionsWhere<Article> } = {};
+    wheres.where = { published: true };
+    if (!!categories) {
+      wheres.where = { ...wheres.where, category: { id: In(categories) } };
+    }
+    if (!!users) {
+      wheres.where = { ...wheres.where, owner: { id: In(users) } };
+    }
+    if (!!keyword) {
+      const whereInstance: FindOptionsWhere<Article> = { ...wheres.where };
+      wheres.where2 = { ...whereInstance, description: ILike(`%${keyword}%`) };
+      wheres.where = { ...whereInstance, title: ILike(`%${keyword}%`) };
+    }
     const options: FindManyOptions = {
       relations: ['category', 'likes', 'owner'],
-      order: { created_at: 'desc' },
-      skip: takeArticleLimit * (page || 1) - takeArticleLimit || 0,
-      take: takeArticleLimit,
+      order: mostPopular ? { likesNumber: 'desc' } : { created_at: 'desc' },
+      skip: getArticleLimit * (page || 1) - getArticleLimit || 0,
+      take: getArticleLimit,
     };
-    if (!!where) options.where = where;
+    if (Object.keys(wheres).length === 1) {
+      options.where = wheres.where;
+    } else {
+      const whereClauseArray = [];
+      for (const whereClause in wheres) {
+        whereClauseArray.push(wheres[whereClause]);
+      }
+      options.where = whereClauseArray;
+    }
     return this.articlesRepository.findAndCount(options);
   }
 }

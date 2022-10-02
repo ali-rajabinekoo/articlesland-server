@@ -61,6 +61,9 @@ export class Article {
   @UpdateDateColumn()
   updated_at: Date;
 
+  @Column({ default: 0, type: Number })
+  likesNumber?: number;
+
   @ApiProperty({
     type: User,
     default: {
