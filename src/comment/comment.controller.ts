@@ -32,6 +32,7 @@ import { Article } from '../article/article.entity';
 import { ArticleService } from '../article/article.service';
 import { exceptionMessages } from '../libs/messages';
 import { ArticleResDto } from '../article/article.dto';
+import { NotificationService } from '../notification/notification.service';
 
 @Controller('comment')
 @ApiBearerAuth()
@@ -46,6 +47,7 @@ export class CommentController {
   constructor(
     private commentService: CommentService,
     private articleService: ArticleService,
+    private notificationService: NotificationService,
   ) {}
 
   @Post(':articleId')
@@ -74,6 +76,17 @@ export class CommentController {
         Number(body.parentId),
       );
       if (!!comment) parentComment = comment;
+    }
+    if (req.user?.id !== article?.owner?.id) {
+      this.notificationService
+        .newNotification({
+          type: 'comment',
+          article,
+          creator: req.user,
+          owner: article.owner,
+          content: body.body,
+        })
+        .catch();
     }
     return new CommentResDto(
       await this.commentService.addNewComment(

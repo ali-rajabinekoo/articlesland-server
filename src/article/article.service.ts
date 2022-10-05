@@ -16,6 +16,7 @@ import { Category } from '../category/category.entity';
 import { User } from '../user/user.entity';
 import { htmlToText } from 'html-to-text';
 import { getArticleLimit } from '../libs/config';
+import utils from '../libs/utils';
 
 @Injectable()
 export class ArticleService {
@@ -91,7 +92,9 @@ export class ArticleService {
   }
 
   async addNewArticle(fields: ArticleDto, owner: User): Promise<Article> {
-    const bodyPath: string = await this.saveArticleBody(fields.body.trim());
+    const bodyPath: string = await this.saveArticleBody(
+      utils.auxiliary.HtmlTagsNormalizer(fields.body),
+    );
     try {
       const newArticle: Article = await this.articlesRepository.create({
         title: fields.title.trim(),
@@ -111,7 +114,10 @@ export class ArticleService {
     newInfo: EditArticleDto,
   ): Promise<Article> {
     if (!!newInfo.body) {
-      await this.updateArticleBody(mainArticle.bodyUrl, newInfo.body);
+      await this.updateArticleBody(
+        mainArticle.bodyUrl,
+        utils.auxiliary.HtmlTagsNormalizer(newInfo.body),
+      );
       mainArticle.description = this.formatDescription(newInfo.body.trim());
     }
     if (!!newInfo.title) {

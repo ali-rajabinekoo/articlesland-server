@@ -144,7 +144,9 @@ export class AuthController {
     user.refreshToken = refreshToken;
     await this.userService.verifyUser(user);
     return {
-      user: await this.userService.findUserById(user.id),
+      user: new UserResDto(await this.userService.findUserById(user.id, true), {
+        showRefreshToken: true,
+      }),
       token: await this.authService.login(user),
     };
   }
@@ -163,7 +165,7 @@ export class AuthController {
       throw new NotFoundException(exceptionMessages.notFound.user);
     }
     return {
-      user: new UserResDto(await this.userService.findUserById(user.id), {
+      user: new UserResDto(await this.userService.findUserById(user.id, true), {
         showRefreshToken: true,
       }),
       token: await this.authService.login(user),
@@ -188,7 +190,7 @@ export class AuthController {
       throw new NotFoundException(exceptionMessages.notFound.user);
     }
     return {
-      user: new UserResDto(await this.userService.findUserById(user.id), {
+      user: new UserResDto(await this.userService.findUserById(user.id, true), {
         showRefreshToken: true,
       }),
       token: await this.authService.login(user),
@@ -255,7 +257,7 @@ export class AuthController {
     }
     await utils.verification.removeVerifyOpportunity(user.phoneNumber);
     return {
-      user: new UserResDto(await this.userService.findUserById(user.id), {
+      user: new UserResDto(await this.userService.findUserById(user.id, true), {
         showRefreshToken: true,
       }),
       token: await this.authService.login(user),

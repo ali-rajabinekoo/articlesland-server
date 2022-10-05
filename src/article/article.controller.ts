@@ -64,6 +64,7 @@ import { UserService } from '../user/user.service';
 import { User } from '../user/user.entity';
 import { AuthService } from '../auth/auth.service';
 import { getArticleLimit } from '../libs/config';
+import { NotificationService } from '../notification/notification.service';
 
 @Controller('article')
 @ApiTags('article')
@@ -78,6 +79,7 @@ export class ArticleController {
     private categoryService: CategoryService,
     private userService: UserService,
     private authService: AuthService,
+    private notificationService: NotificationService,
   ) {}
 
   @Get('/explore')
@@ -540,6 +542,16 @@ export class ArticleController {
       article = await this.articleService.saveArticle(article);
       user.likes.push(article);
       await this.userService.saveUser(user);
+    }
+    if (user?.id !== article?.owner?.id) {
+      this.notificationService
+        .newNotification({
+          type: 'like',
+          article,
+          creator: user,
+          owner: article.owner,
+        })
+        .catch();
     }
     const serializedUser = new UserResDto(user);
     return serializedUser.likes;

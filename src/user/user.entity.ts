@@ -17,6 +17,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Category } from '../category/category.entity';
 import { Comment } from '../comment/comment.entity';
 import * as bcrypt from 'bcrypt';
+import { Notification } from '../notification/notification.entity';
 
 @Entity('user')
 export class User {
@@ -74,6 +75,13 @@ export class User {
     onUpdate: 'CASCADE',
   })
   articles: Relation<Article[]>;
+
+  @ApiProperty({ type: [Notification] })
+  @OneToMany(() => Notification, (notification) => notification.owner, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  notifications: Relation<Notification[]>;
 
   @ApiProperty({
     default: {

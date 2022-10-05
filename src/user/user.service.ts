@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, FindOptionsWhere, ILike, Repository } from 'typeorm';
+import {
+  FindManyOptions,
+  FindOneOptions,
+  FindOptionsWhere,
+  ILike,
+  Repository,
+} from 'typeorm';
 import {
   CreateUserQuery,
   LoginByCredentialDto,
@@ -22,8 +28,8 @@ export class UserService {
     private usersRepository: Repository<User>,
   ) {}
 
-  private getRelations = () => {
-    return [
+  private getRelations = (hasNotification?: boolean) => {
+    const relations = [
       'articles',
       'articles.category',
       'articles.owner',
@@ -38,6 +44,13 @@ export class UserService {
       'bookmarks.owner',
       'selectedCategories',
     ];
+    if (!!hasNotification) {
+      relations.push('notifications');
+      relations.push('notifications.owner');
+      relations.push('notifications.creator');
+      relations.push('notifications.article');
+    }
+    return relations;
   };
 
   async findUserByUniqueInfo(body: UserUniqueInfoDto): Promise<User> {
@@ -67,11 +80,15 @@ export class UserService {
     });
   }
 
-  async findUserById(id: number): Promise<User> {
-    return this.usersRepository.findOne({
+  async findUserById(id: number, hasNotification?: boolean): Promise<User> {
+    const findQuery: FindOneOptions = {
       where: { id },
-      relations: this.getRelations(),
-    });
+      relations: this.getRelations(hasNotification),
+    };
+    if (!!hasNotification) {
+      findQuery.order = { notifications: { created_at: 'desc' } };
+    }
+    return this.usersRepository.findOne(findQuery);
   }
 
   async findUserByUsername(
