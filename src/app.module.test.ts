@@ -12,6 +12,7 @@ import { CategoryModule } from './category/category.module';
 import { CommentModule } from './comment/comment.module';
 import { ReportModule } from './report/report.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { NotificationModule } from './notification/notification.module';
 import { join } from 'path';
 
 export const TypeOrmTestingModule = () => [
@@ -40,6 +41,7 @@ export const AppModuleTestMetadata = {
     CategoryModule,
     CommentModule,
     ReportModule,
+    NotificationModule,
     ...TypeOrmTestingModule(),
   ],
 };

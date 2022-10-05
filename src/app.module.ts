@@ -15,6 +15,8 @@ import { Report } from './report/report.entity';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { DraftModule } from './draft/draft.module';
+import { NotificationModule } from './notification/notification.module';
+import { Notification } from './notification/notification.entity';
 
 export const AppModuleMetadata = {
   imports: [
@@ -25,7 +27,7 @@ export const AppModuleMetadata = {
       username: database.username,
       password: database.password,
       database: database.dbname,
-      entities: [User, Category, Article, Comment, Report],
+      entities: [User, Category, Article, Comment, Report, Notification],
       synchronize: true,
       timezone: 'Asia/Tehran',
     }),
@@ -40,6 +42,7 @@ export const AppModuleMetadata = {
     CommentModule,
     ReportModule,
     DraftModule,
+    NotificationModule,
   ],
 };
 

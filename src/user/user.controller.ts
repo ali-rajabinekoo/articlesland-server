@@ -57,6 +57,7 @@ import {
 } from '../libs/file-uploading.utils';
 import * as bcrypt from 'bcrypt';
 import { getUsersLimit } from '../libs/config';
+import { NotificationService } from '../notification/notification.service';
 
 @Controller('user')
 @ApiTags('user')
@@ -65,7 +66,10 @@ import { getUsersLimit } from '../libs/config';
   description: 'Internal server error',
 })
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private notificationService: NotificationService,
+  ) {}
 
   @Get()
   @ApiBearerAuth()
@@ -79,7 +83,9 @@ export class UserController {
     type: UnauthorizedDto,
   })
   async getUserInformation(@Req() req: RequestFormat): Promise<UserResDto> {
-    return new UserResDto(await this.userService.findUserById(req.user.id));
+    return new UserResDto(
+      await this.userService.findUserById(req.user.id, true),
+    );
   }
 
   @Get('/list')
@@ -416,6 +422,13 @@ export class UserController {
     if (!following || following?.id === follower.id) {
       throw new NotFoundException(exceptionMessages.notFound.user);
     }
+    this.notificationService
+      .newNotification({
+        type: 'follow',
+        creator: req.user,
+        owner: following,
+      })
+      .catch();
     follower.followings.push(following);
     await this.userService.saveUser(follower);
     following.followers.push(follower);

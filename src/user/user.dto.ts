@@ -16,6 +16,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { ArticleResDto } from '../article/article.dto';
 import { Relation } from 'typeorm';
 import { Comment } from '../comment/comment.entity';
+import { NotificationResDto } from '../notification/notification.dto';
 
 export class UserJwtDto {
   id: number;
@@ -224,11 +225,12 @@ export class FollowDto {
 // Response Serialization DTOs
 
 export class UserResDto {
-  articles: ArticleResDto[];
   likes: ArticleResDto[];
-  bookmarks: ArticleResDto[];
   followers: UserResDto[];
   followings: UserResDto[];
+  articles: ArticleResDto[];
+  bookmarks: ArticleResDto[];
+  notifications: NotificationResDto[];
 
   @Exclude({ toPlainOnly: true })
   password: string;
@@ -268,6 +270,14 @@ export class UserResDto {
     }
     if (Array.isArray(partial?.articles) && partial.articles.length !== 0) {
       this.articles = partial.articles.map((el) => new ArticleResDto(el));
+    }
+    if (
+      Array.isArray(partial?.notifications) &&
+      partial.notifications.length !== 0
+    ) {
+      this.notifications = partial.notifications.map(
+        (el) => new NotificationResDto(el),
+      );
     }
     if (Array.isArray(partial?.followers) && partial.followers.length !== 0) {
       this.followers = partial.followers.map(
