@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { FindManyOptions, FindOptionsWhere, ILike, Repository } from 'typeorm';
 import {
   CreateUserQuery,
   LoginByCredentialDto,
@@ -13,6 +13,7 @@ import * as bcrypt from 'bcrypt';
 import utils from '../libs/utils';
 import { MellipayamakResponse } from '../libs/schemas';
 import request from '../libs/request';
+import { getUsersLimit } from '../libs/config';
 
 @Injectable()
 export class UserService {
@@ -99,6 +100,26 @@ export class UserService {
       where: { refreshToken },
       relations: this.getRelations(),
     });
+  }
+
+  async findUsers(
+    keyword?: string | undefined,
+    page?: number | undefined,
+  ): Promise<[User[], number]> {
+    const wheres: FindOptionsWhere<User>[] = [];
+    const findQuery: FindManyOptions = {
+      relations: this.getRelations(),
+      skip: getUsersLimit * (page || 1) - getUsersLimit || 0,
+      take: getUsersLimit,
+    };
+    if (!!keyword?.trim()) {
+      wheres[0] = { username: ILike(`%${keyword}%`) };
+      wheres[1] = { displayName: ILike(`%${keyword}%`) };
+    }
+    if (wheres.length !== 0) {
+      findQuery.where = wheres;
+    }
+    return this.usersRepository.findAndCount(findQuery);
   }
 
   async verifyUser(user: User): Promise<void> {

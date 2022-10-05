@@ -45,4 +45,7 @@ export const codeExpire = 120000;
 export const emailCodeExpire = 120000;
 
 // 12 article per page
-export const takeArticleLimit = 12;
+export const getArticleLimit = 12;
+
+// 30 article per page
+export const getUsersLimit = 30;

@@ -17,6 +17,7 @@ import {
   Post,
   NotFoundException,
   Param,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -55,6 +56,7 @@ import {
   avatarStorage,
 } from '../libs/file-uploading.utils';
 import * as bcrypt from 'bcrypt';
+import { getUsersLimit } from '../libs/config';
 
 @Controller('user')
 @ApiTags('user')
@@ -78,6 +80,22 @@ export class UserController {
   })
   async getUserInformation(@Req() req: RequestFormat): Promise<UserResDto> {
     return new UserResDto(await this.userService.findUserById(req.user.id));
+  }
+
+  @Get('/list')
+  @ApiOkResponse({
+    description: 'Returns another user info by id.',
+    type: User,
+  })
+  async getAllUsers(
+    @Query('keyword') keyword?: string | undefined,
+    @Query('page') page?: number | undefined,
+  ): Promise<{ users: UserResDto[]; total: number; totalPages: number }> {
+    const [users, total] = await this.userService.findUsers(
+      keyword,
+      isNaN(Number(page)) ? 1 : Number(page),
+    );
+    return { users, total, totalPages: Math.ceil(total / getUsersLimit) };
   }
 
   // @Get(':id')
