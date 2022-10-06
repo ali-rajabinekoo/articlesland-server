@@ -70,6 +70,11 @@ export class CommentController {
     if (!article) {
       throw new NotFoundException(exceptionMessages.notFound.article);
     }
+    if (!!article.owner.blockedUsers.find((el) => el.id === req.user.id)) {
+      throw new ForbiddenException(
+        exceptionMessages.forbidden.youBlockedByUser,
+      );
+    }
     let parentComment: Comment | undefined;
     if (!!body?.parentId) {
       const comment: Comment = await this.commentService.findCommentById(

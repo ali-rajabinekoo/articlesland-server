@@ -117,6 +117,23 @@ export class User {
   @JoinTable({ name: 'followings' })
   followings: Relation<User[]>;
 
+  @ApiProperty({
+    default: {
+      id: 2,
+      username: 'articlesLandUser2',
+      phoneNumber: '9212210982',
+      email: 'articlesLandUser2@email.com',
+      avatar: '/avatar/something2.png',
+      bio: 'This is ArticlesLand user 2',
+      created_at: '2022-08-17T18:20:49.785Z',
+      updated_at: '2022-08-17T18:20:49.785Z',
+    },
+    description: 'Some users that blocked by this user',
+  })
+  @ManyToMany(() => User)
+  @JoinTable({ name: 'blockedUsers' })
+  blockedUsers: Relation<User[]>;
+
   @ApiProperty({ type: [Report] })
   @OneToMany(() => Report, (report) => report.owner, {
     onDelete: 'CASCADE',

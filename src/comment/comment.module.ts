@@ -14,5 +14,6 @@ import { NotificationModule } from '../notification/notification.module';
   ],
   controllers: [CommentController],
   providers: [CommentService],
+  exports: [CommentService],
 })
 export class CommentModule {}

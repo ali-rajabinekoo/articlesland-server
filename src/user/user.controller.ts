@@ -22,7 +22,6 @@ import {
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import {
-  FollowDto,
   RequestFormat,
   SendEmailVerificationCodeDto,
   SendLoginCodeDto,
@@ -133,6 +132,7 @@ export class UserController {
     @Param('username') username: string,
   ): Promise<UserResDto> {
     const user: User = await this.userService.findUserByUsername(username);
+    user.articles = user.articles.filter((el) => el.published);
     return new UserResDto(user, {
       protectedUser: true,
       extraValidFields: ['articles', 'followers', 'followings'],
@@ -400,7 +400,7 @@ export class UserController {
     return new UserResDto(await this.userService.saveUser(user));
   }
 
-  @Post('follow')
+  @Post('follow/:id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiUnauthorizedResponse({
@@ -412,15 +412,26 @@ export class UserController {
     type: User,
   })
   async follow(
-    @Body() body: FollowDto,
     @Req() req: RequestFormat,
+    @Param('id') userId: number,
   ): Promise<UserResDto> {
+    if (!userId) {
+      throw new NotFoundException(exceptionMessages.notFound.user);
+    }
     const follower: User = req.user;
-    const following: User = await this.userService.findUserById(
-      body.newFollowingUserId,
-    );
+    const following: User = await this.userService.findUserById(userId);
     if (!following || following?.id === follower.id) {
       throw new NotFoundException(exceptionMessages.notFound.user);
+    }
+    if (!!following.blockedUsers?.find((el) => el.id === follower.id)) {
+      throw new ForbiddenException(
+        exceptionMessages.forbidden.youBlockedByUser,
+      );
+    }
+    if (!!follower.blockedUsers?.find((el) => el.id === following.id)) {
+      throw new ForbiddenException(
+        exceptionMessages.forbidden.youBlockedThisUser,
+      );
     }
     this.notificationService
       .newNotification({
@@ -436,7 +447,7 @@ export class UserController {
     return new UserResDto(await this.userService.findUserById(follower.id));
   }
 
-  @Post('unfollow')
+  @Post('unfollow/:id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiUnauthorizedResponse({
@@ -448,13 +459,14 @@ export class UserController {
     type: User,
   })
   async unfollow(
-    @Body() body: FollowDto,
     @Req() req: RequestFormat,
+    @Param('id') userId: number,
   ): Promise<UserResDto> {
+    if (!userId) {
+      throw new NotFoundException(exceptionMessages.notFound.user);
+    }
     const follower: User = req.user;
-    const following: User = await this.userService.findUserById(
-      body.newFollowingUserId,
-    );
+    const following: User = await this.userService.findUserById(userId);
     if (!following || following?.id === follower.id) {
       throw new NotFoundException(exceptionMessages.notFound.user);
     }
@@ -467,5 +479,80 @@ export class UserController {
     });
     await this.userService.saveUser(following);
     return new UserResDto(await this.userService.findUserById(follower.id));
+  }
+
+  @Post('block/:id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: UnauthorizedDto,
+  })
+  @ApiOkResponse({
+    description: 'User blocked.',
+    type: User,
+  })
+  async block(
+    @Req() req: RequestFormat,
+    @Param('id') userId: number,
+  ): Promise<UserResDto> {
+    if (!userId) {
+      throw new NotFoundException(exceptionMessages.notFound.user);
+    }
+    const user: User = req.user;
+    const targetUser: User = await this.userService.findUserById(userId);
+    if (!targetUser || targetUser?.id === req.user?.id) {
+      throw new NotFoundException(exceptionMessages.notFound.user);
+    }
+    user.blockedUsers.push(targetUser);
+    user.likes = user.likes.filter((el) => el.owner.id !== targetUser.id);
+    user.bookmarks = user.bookmarks.filter(
+      (el) => el.owner.id !== targetUser.id,
+    );
+    user.followers = user.followers.filter((el) => el.id !== targetUser.id);
+    user.followings = user.followings.filter((el) => el.id !== targetUser.id);
+    await this.userService.saveUser(user);
+    targetUser.likes = targetUser.likes.filter((el) => el.owner.id !== user.id);
+    targetUser.bookmarks = targetUser.bookmarks.filter(
+      (el) => el.owner.id !== user.id,
+    );
+    targetUser.followers = targetUser.followers.filter(
+      (el) => el.id !== user.id,
+    );
+    targetUser.followings = targetUser.followings.filter(
+      (el) => el.id !== user.id,
+    );
+    await this.userService.saveUser(targetUser);
+    return new UserResDto(await this.userService.findUserById(user.id));
+  }
+
+  @Post('unblock/:id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: UnauthorizedDto,
+  })
+  @ApiOkResponse({
+    description: 'User unblocked.',
+    type: User,
+  })
+  async unblock(
+    @Req() req: RequestFormat,
+    @Param('id') userId: number,
+  ): Promise<UserResDto> {
+    if (!userId) {
+      throw new NotFoundException(exceptionMessages.notFound.user);
+    }
+    const user: User = req.user;
+    const targetUser: User = await this.userService.findUserById(userId);
+    if (!targetUser || targetUser?.id === req.user?.id) {
+      throw new NotFoundException(exceptionMessages.notFound.user);
+    }
+    user.blockedUsers = user.blockedUsers.filter(
+      (el) => el.id !== targetUser.id,
+    );
+    await this.userService.saveUser(user);
+    return new UserResDto(await this.userService.findUserById(user.id));
   }
 }

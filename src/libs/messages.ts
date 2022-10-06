@@ -66,6 +66,10 @@ export const exceptionMessages = {
   permission: {
     main: 'شما دسترسی لازم برای این عملیات را ندارید',
   },
+  forbidden: {
+    youBlockedByUser: 'شما توسط کاربر مورد نظر مسدود شده اید',
+    youBlockedThisUser: 'شما کاربر مورد نظر را مسدود کرده اید',
+  },
 };
 
 export const systemMessage = {

@@ -479,6 +479,11 @@ export class ArticleController {
     if (!article || !article?.published) {
       throw new NotFoundException(exceptionMessages.notFound.article);
     }
+    if (!!article.owner.blockedUsers.find((el) => el.id === req.user.id)) {
+      throw new ForbiddenException(
+        exceptionMessages.forbidden.youBlockedByUser,
+      );
+    }
     const user: User = await this.userService.findUserById(req.user.id);
     user.bookmarks.push(article);
     await this.userService.saveUser(user);
@@ -534,6 +539,11 @@ export class ArticleController {
     let article: Article = await this.articleService.findArticleById(articleId);
     if (!article || !article?.published) {
       throw new NotFoundException(exceptionMessages.notFound.article);
+    }
+    if (!!article.owner.blockedUsers.find((el) => el.id === req.user.id)) {
+      throw new ForbiddenException(
+        exceptionMessages.forbidden.youBlockedByUser,
+      );
     }
     const user: User = await this.userService.findUserById(req.user.id);
     const existLike: Article = user.likes.find((el) => el.id === article.id);

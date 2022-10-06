@@ -34,6 +34,7 @@ export class UserService {
       'articles.category',
       'articles.owner',
       'followers',
+      'blockedUsers',
       'followings',
       'reports',
       'likes',
@@ -91,13 +92,9 @@ export class UserService {
     return this.usersRepository.findOne(findQuery);
   }
 
-  async findUserByUsername(
-    username: string,
-    unpublished?: boolean,
-  ): Promise<User> {
+  async findUserByUsername(username: string): Promise<User> {
     const where: FindOptionsWhere<User> = {
       username,
-      articles: { published: !unpublished },
     };
     return this.usersRepository.findOne({
       where,
