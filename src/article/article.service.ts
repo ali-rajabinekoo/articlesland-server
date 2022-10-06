@@ -147,7 +147,7 @@ export class ArticleService {
     return this.articlesRepository.save(mainArticle);
   }
 
-  async saveArticle(article: Article): Promise<Article> {
+  public async saveArticle(article: Article): Promise<Article> {
     return this.articlesRepository.save(article);
   }
 
@@ -167,6 +167,7 @@ export class ArticleService {
       },
       relations: [
         'owner',
+        'owner.blockedUsers',
         'category',
         'reports',
         'likes',
@@ -229,5 +230,25 @@ export class ArticleService {
       options.where = whereClauseArray;
     }
     return this.articlesRepository.findAndCount(options);
+  }
+
+  async findArticleByOwner(id: number): Promise<Article> {
+    return await this.articlesRepository.findOne({
+      where: {
+        owner: { id },
+      },
+      relations: [
+        'owner',
+        'owner.blockedUsers',
+        'category',
+        'reports',
+        'likes',
+        'comments',
+        'comments.owner',
+        'comments.parent',
+        'comments.parent.owner',
+        'comments.children.owner',
+      ],
+    });
   }
 }

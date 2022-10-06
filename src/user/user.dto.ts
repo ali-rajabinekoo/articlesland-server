@@ -213,15 +213,6 @@ export class UpdateUserInfo {
   bio?: string | undefined;
 }
 
-export class FollowDto {
-  @ApiProperty({
-    default: '1',
-    description: 'Following user id.',
-  })
-  @IsNotEmpty({ message: validationMessages.empty.follow })
-  newFollowingUserId: number;
-}
-
 // Response Serialization DTOs
 
 export class UserResDto {
@@ -230,6 +221,7 @@ export class UserResDto {
   followings: UserResDto[];
   articles: ArticleResDto[];
   bookmarks: ArticleResDto[];
+  blockedUsers: UserResDto[];
   notifications: NotificationResDto[];
 
   @Exclude({ toPlainOnly: true })
@@ -289,6 +281,17 @@ export class UserResDto {
     }
     if (Array.isArray(partial?.followings) && partial.followings.length !== 0) {
       this.followings = partial.followings.map(
+        (el) =>
+          new UserResDto(el, {
+            protectedUser: true,
+          }),
+      );
+    }
+    if (
+      Array.isArray(partial?.blockedUsers) &&
+      partial.blockedUsers.length !== 0
+    ) {
+      this.blockedUsers = partial.blockedUsers.map(
         (el) =>
           new UserResDto(el, {
             protectedUser: true,
