@@ -14,6 +14,7 @@ export const validationMessages = {
     articleBanner: 'انتخاب تصویر برای پست الزامیست',
     avatar: 'انتخاب تصویر پروفایل الزامیست',
     follow: 'کاربری که میخواهید دنبال کنید را مشخص کنید',
+    reportType: 'نوع گزارش را مشخص کنید',
   },
   length: {
     usernameShort: 'نام کاربری باید حداقل شامل ۴ حرف باشد',
@@ -25,6 +26,8 @@ export const validationMessages = {
     selectedCategories: 'حداقل یک مورد از لیست ها باید انتخاب شده باشد',
     commentBodyShort: 'متن بدنه نظر شما باید حداقل شامل ۱۰ حرف باشد',
     commentBodyLong: 'متن بدنه نظر شما باید حداکثر شامل ۵۰۰ حرف باشد',
+    reportContentShort: 'متن گزارش باید حداقل شامل ۳۰ حرف باشد',
+    reportContentLong: 'متن گزارش باید حداکثر شامل ۲۰۰ حرف باشد',
   },
   invalid: {
     username: 'نام کاربری شامل حروف انگلیسی و اعداد می باشد',
@@ -34,6 +37,7 @@ export const validationMessages = {
     password: 'رمزعبور باید حداقل شامل حروف و عدد به طول ۸ کاراکتر باشد',
     repeatPassword: 'رمز عبور و تکرار آن با هم برار نیستند',
   },
+  selecting: (name: string) => `انتخاب ${name} الزامیست`,
 };
 
 export const exceptionMessages = {
@@ -56,6 +60,7 @@ export const exceptionMessages = {
     code: 'کد وارد شده معتبر نیست',
     imageFileFormat:
       'فرمت فایل انتخاب شده صحیح نمی باشد لطفا یک فایل تصویر انتخاب کنید',
+    report: 'گزارش تخلف نامعتبر است',
   },
   notAcceptable: {
     code: 'تا زمان پایان اعتبار کد ارسال شده منتظر بمانید',
@@ -69,6 +74,9 @@ export const exceptionMessages = {
   forbidden: {
     youBlockedByUser: 'شما توسط کاربر مورد نظر مسدود شده اید',
     youBlockedThisUser: 'شما کاربر مورد نظر را مسدود کرده اید',
+  },
+  badRequest: {
+    reportContent: 'متن گزارش الزامیست',
   },
 };
 
