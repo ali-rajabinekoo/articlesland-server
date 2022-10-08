@@ -4,6 +4,7 @@ import {
   ManyToOne,
   JoinColumn,
   Relation,
+  Column,
 } from 'typeorm';
 import { User } from '../user/user.entity';
 import { Article } from '../article/article.entity';
@@ -15,6 +16,14 @@ export class Report {
   @ApiProperty({ type: Number, default: 1 })
   @PrimaryGeneratedColumn()
   id: number;
+
+  @ApiProperty({ type: String })
+  @Column({ default: null, nullable: true })
+  type?: string | null;
+
+  @ApiProperty({ type: String })
+  @Column({ default: null, nullable: true })
+  content?: string | null;
 
   @ApiProperty({
     type: User,
@@ -35,9 +44,9 @@ export class Report {
 
   @ManyToOne(() => Article, (article) => article.id)
   @JoinColumn()
-  article: Relation<Article>;
+  article?: Relation<Article> | null;
 
   @ManyToOne(() => Comment, (comment) => comment.id)
   @JoinColumn()
-  comment: Relation<Comment>;
+  comment?: Relation<Comment> | null;
 }
