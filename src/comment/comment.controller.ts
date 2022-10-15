@@ -33,6 +33,7 @@ import { ArticleService } from '../article/article.service';
 import { exceptionMessages } from '../libs/messages';
 import { ArticleResDto } from '../article/article.dto';
 import { NotificationService } from '../notification/notification.service';
+import utils from '../libs/utils';
 
 @Controller('comment')
 @ApiBearerAuth()
@@ -69,6 +70,11 @@ export class CommentController {
     );
     if (!article) {
       throw new NotFoundException(exceptionMessages.notFound.article);
+    }
+    if (await utils.admin.checkIsBlocked(req.user.id)) {
+      throw new ForbiddenException(
+        exceptionMessages.forbidden.youBlockedByAdmin,
+      );
     }
     if (!!article.owner.blockedUsers.find((el) => el.id === req.user.id)) {
       throw new ForbiddenException(

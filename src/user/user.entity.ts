@@ -16,8 +16,8 @@ import { Report } from '../report/report.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Category } from '../category/category.entity';
 import { Comment } from '../comment/comment.entity';
-import * as bcrypt from 'bcrypt';
 import { Notification } from '../notification/notification.entity';
+import * as bcrypt from 'bcrypt';
 
 @Entity('user')
 export class User {
@@ -36,6 +36,10 @@ export class User {
   @Column()
   @Exclude({ toPlainOnly: true })
   password: string;
+
+  @Column({ type: 'varchar', default: 'user' })
+  @Exclude({ toPlainOnly: true })
+  role?: 'admin' | 'user';
 
   @ApiProperty({ type: String, default: '9212210982' })
   @Column({ unique: true })

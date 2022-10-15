@@ -301,3 +301,21 @@ export class UserResDto {
     Object.assign(this, partial);
   }
 }
+
+export class UserResDtoForAdmin extends UserResDto {
+  isBlocked?: boolean;
+
+  constructor(
+    partial: Partial<User>,
+    options?: {
+      protectedUser?: boolean;
+      showRefreshToken?: boolean;
+      authenticationResponse?: boolean;
+      extraValidFields?: string[];
+      isBlocked?: boolean;
+    },
+  ) {
+    super(partial, options);
+    this.isBlocked = Boolean(options.isBlocked);
+  }
+}

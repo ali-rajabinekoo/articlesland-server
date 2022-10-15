@@ -251,6 +251,11 @@ export class ArticleController {
     @Req() req: RequestFormat,
     @Body() body: ArticleDto,
   ): Promise<ArticleResDto> {
+    if (await utils.admin.checkIsBlocked(req.user.id)) {
+      throw new ForbiddenException(
+        exceptionMessages.forbidden.youBlockedByAdmin,
+      );
+    }
     const duplicatedArticle: Article =
       await this.articleService.findArticleByTitle(body.title);
     if (!!duplicatedArticle) {
@@ -285,6 +290,11 @@ export class ArticleController {
     @Body() body: EditArticleDto,
     @Param('id') id: number,
   ): Promise<ArticleResDto> {
+    if (await utils.admin.checkIsBlocked(req.user.id)) {
+      throw new ForbiddenException(
+        exceptionMessages.forbidden.youBlockedByAdmin,
+      );
+    }
     const article: Article = await this.articleService.findArticleById(id);
     if (!article) {
       throw new NotFoundException(exceptionMessages.notFound.article);
@@ -346,6 +356,11 @@ export class ArticleController {
     @Param('id') id: number,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<ArticleResDto> {
+    if (await utils.admin.checkIsBlocked(req.user.id)) {
+      throw new ForbiddenException(
+        exceptionMessages.forbidden.youBlockedByAdmin,
+      );
+    }
     try {
       const article: Article = await this.articleService.findArticleById(id);
       (() => {
@@ -473,6 +488,11 @@ export class ArticleController {
     @Param('articleId') articleId: number,
     @Req() req: RequestFormat,
   ): Promise<ArticleResDto[]> {
+    if (await utils.admin.checkIsBlocked(req.user.id)) {
+      throw new ForbiddenException(
+        exceptionMessages.forbidden.youBlockedByAdmin,
+      );
+    }
     const article: Article = await this.articleService.findArticleById(
       articleId,
     );
@@ -536,6 +556,11 @@ export class ArticleController {
     @Param('articleId') articleId: number,
     @Req() req: RequestFormat,
   ): Promise<ArticleResDto[]> {
+    if (await utils.admin.checkIsBlocked(req.user.id)) {
+      throw new ForbiddenException(
+        exceptionMessages.forbidden.youBlockedByAdmin,
+      );
+    }
     let article: Article = await this.articleService.findArticleById(articleId);
     if (!article || !article?.published) {
       throw new NotFoundException(exceptionMessages.notFound.article);

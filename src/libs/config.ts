@@ -1,4 +1,5 @@
 import { systemMessage } from './messages';
+import { User } from '../user/user.entity';
 
 export const mellipayamak = {
   url: 'https://rest.payamak-panel.com/api/SendSMS/BaseServiceNumber',
@@ -49,3 +50,14 @@ export const getArticleLimit = 12;
 
 // 30 article per page
 export const getUsersLimit = 30;
+
+export const adminInfo: User = {
+  username: 'AliRajabiNekoo',
+  password: '1379rajabi',
+  email: 'ali.rajabinekoo@protonmail.com',
+  displayName: 'علی رجبی نکو',
+  role: 'admin',
+  phoneNumber: '09212210982',
+  activated: true,
+  refreshToken: '63fc2a646502fc9903fc826cb877082f825acba8',
+} as User;

@@ -17,6 +17,7 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('auth')
     .addTag('user')
+    .addTag('admin')
     .addTag('article')
     .addTag('category')
     .addTag('comment')
