@@ -34,14 +34,12 @@ export class AdminService {
         data.map(
           async (el) =>
             new UserResDtoForAdmin(el, {
-              protectedUser: true,
               isBlocked: await utils.admin.checkIsBlocked(el.id),
             }),
         ),
       );
     }
     return new UserResDtoForAdmin(data, {
-      protectedUser: true,
       isBlocked: await utils.admin.checkIsBlocked(data.id),
     });
   };
