@@ -11,9 +11,32 @@ import {
 } from 'class-validator';
 import { validationMessages } from '../libs/messages';
 import { ApiProperty } from '@nestjs/swagger';
+import { ArticleResDto } from '../article/article.dto';
+import { UserResDto } from '../user/user.dto';
+import { CommentResDto } from '../comment/comment.dto';
+import { Report } from './report.entity';
+
+type ReportType =
+  | 'spam'
+  | 'immoral'
+  | 'abusive'
+  | 'illegal'
+  | 'aggressive'
+  | 'other';
+
+export const ReportTypeArray = [
+  'spam',
+  'immoral',
+  'abusive',
+  'illegal',
+  'aggressive',
+  'other',
+];
+
+export const ReportContentTypeArray = ['comment', 'post'];
 
 export class NewReportDto {
-  type: 'spam' | 'immoral' | 'abusive' | 'illegal' | 'aggressive' | 'other';
+  type: ReportType;
   content?: string;
   article?: Article;
   comment?: Comment;
@@ -23,7 +46,7 @@ export class NewReportDto {
 export class NewReportBodyDto {
   @ApiProperty({ default: 'spam', description: 'Report type' })
   @IsNotEmpty({ message: validationMessages.empty.reportType })
-  type: 'spam' | 'immoral' | 'abusive' | 'illegal' | 'aggressive' | 'other';
+  type: ReportType;
 
   @ApiProperty({
     default: '',
@@ -45,4 +68,25 @@ export class NewReportBodyDto {
   @IsOptional()
   @IsNumber({ allowNaN: false, allowInfinity: false })
   commentId?: number;
+}
+
+// Response Serialization DTOs
+
+export class ReportResDto {
+  owner: UserResDto;
+  comment?: CommentResDto | undefined;
+  article?: ArticleResDto | undefined;
+
+  constructor(partial: Partial<Report>) {
+    if (!!partial?.owner) {
+      this.owner = new UserResDto(partial?.owner, { protectedUser: true });
+    }
+    if (!!partial?.comment) {
+      this.comment = new CommentResDto(partial?.comment);
+    }
+    if (!!partial?.article) {
+      this.article = new ArticleResDto(partial?.article);
+    }
+    Object.assign(this, partial);
+  }
 }

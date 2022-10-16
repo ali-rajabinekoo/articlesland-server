@@ -36,6 +36,8 @@ export const validationMessages = {
     code: 'کد یکبار مصرف معتبر نیست',
     password: 'رمزعبور باید حداقل شامل حروف و عدد به طول ۸ کاراکتر باشد',
     repeatPassword: 'رمز عبور و تکرار آن با هم برار نیستند',
+    reportType: 'نوع گزارش انتخاب شده نامعتیر است',
+    reportContentType: 'نوع گزارش انتخاب شده برای محتوای مورد نظر نامعتیر است',
   },
   selecting: (name: string) => `انتخاب ${name} الزامیست`,
 };
