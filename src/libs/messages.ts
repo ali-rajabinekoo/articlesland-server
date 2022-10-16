@@ -70,10 +70,14 @@ export const exceptionMessages = {
   },
   permission: {
     main: 'شما دسترسی لازم برای این عملیات را ندارید',
+    section: 'شما دسترسی لازم به این قسمت را ندارید',
   },
   forbidden: {
     youBlockedByUser: 'شما توسط کاربر مورد نظر مسدود شده اید',
+    youBlockedByAdmin: `شما توسط ادمین مسدود شده اید. لطفا برای رفع مسدودی با ادمین در ارتباط باشید.
+    \nadmin@articlesland.ir`,
     youBlockedThisUser: 'شما کاربر مورد نظر را مسدود کرده اید',
+    deleteAccount: 'درخواست شما برای حذف اکانت فاقد اعتبار است',
   },
   badRequest: {
     reportContent: 'متن گزارش الزامیست',

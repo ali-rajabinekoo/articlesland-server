@@ -18,6 +18,7 @@ import {
   NotFoundException,
   Param,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -100,7 +101,11 @@ export class UserController {
       keyword,
       isNaN(Number(page)) ? 1 : Number(page),
     );
-    return { users, total, totalPages: Math.ceil(total / getUsersLimit) };
+    return {
+      users: users.map((el) => new UserResDto(el, { protectedUser: true })),
+      total,
+      totalPages: Math.ceil(total / getUsersLimit),
+    };
   }
 
   // @Get(':id')
@@ -554,5 +559,24 @@ export class UserController {
     );
     await this.userService.saveUser(user);
     return new UserResDto(await this.userService.findUserById(user.id));
+  }
+
+  @Delete('deleteAccount/:id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+    type: UnauthorizedDto,
+  })
+  @ApiOkResponse({
+    description: 'User deleted.',
+    type: User,
+  })
+  async deleteAccount(@Req() req: RequestFormat): Promise<void> {
+    const targetUser: User = await this.userService.findUserById(req.user.id);
+    if (!targetUser || targetUser?.id !== req.user?.id) {
+      throw new NotFoundException(exceptionMessages.forbidden.deleteAccount);
+    }
+    await this.userService.removeUser(targetUser);
   }
 }

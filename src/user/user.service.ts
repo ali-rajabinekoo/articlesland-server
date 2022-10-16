@@ -119,6 +119,7 @@ export class UserService {
   async findUsers(
     keyword?: string | undefined,
     page?: number | undefined,
+    moreWhere?: FindOptionsWhere<User>,
   ): Promise<[User[], number]> {
     const wheres: FindOptionsWhere<User>[] = [];
     const findQuery: FindManyOptions = {
@@ -129,6 +130,10 @@ export class UserService {
     if (!!keyword?.trim()) {
       wheres[0] = { username: ILike(`%${keyword}%`) };
       wheres[1] = { displayName: ILike(`%${keyword}%`) };
+    }
+    if (!!moreWhere) {
+      wheres[0] = !!wheres[0] ? { ...wheres[0], ...moreWhere } : moreWhere;
+      wheres[1] = !!wheres[1] ? { ...wheres[1], ...moreWhere } : moreWhere;
     }
     if (wheres.length !== 0) {
       findQuery.where = wheres;
@@ -151,6 +156,10 @@ export class UserService {
 
   async saveUser(user: User): Promise<User> {
     return this.usersRepository.save(user);
+  }
+
+  async removeUser(user: User): Promise<User> {
+    return this.usersRepository.remove(user);
   }
 
   async sendCode(user: User): Promise<boolean> {
