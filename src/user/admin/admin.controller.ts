@@ -34,8 +34,8 @@ export class AdminController {
 
   @Get('/users')
   @ApiOkResponse({
-    description: 'Returns another user info by id.',
-    type: User,
+    description: 'Returns users information.',
+    type: [User],
   })
   async getAllUsers(
     @Query('keyword') keyword?: string | undefined,

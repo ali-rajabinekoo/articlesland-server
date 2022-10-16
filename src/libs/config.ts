@@ -48,8 +48,11 @@ export const emailCodeExpire = 120000;
 // 12 article per page
 export const getArticleLimit = 12;
 
-// 30 article per page
+// 30 articles per page
 export const getUsersLimit = 30;
+
+// 1 report per page
+export const getReportsLimit = 30;
 
 export const adminInfo: User = {
   username: 'AliRajabiNekoo',

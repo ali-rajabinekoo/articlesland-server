@@ -5,6 +5,7 @@ import {
   JoinColumn,
   Relation,
   Column,
+  CreateDateColumn,
 } from 'typeorm';
 import { User } from '../user/user.entity';
 import { Article } from '../article/article.entity';
@@ -49,4 +50,8 @@ export class Report {
   @ManyToOne(() => Comment, (comment) => comment.id)
   @JoinColumn()
   comment?: Relation<Comment> | null;
+
+  @ApiProperty({ type: String, default: new Date() })
+  @CreateDateColumn()
+  created_at: Date;
 }
