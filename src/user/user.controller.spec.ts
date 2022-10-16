@@ -10,6 +10,7 @@ import utils from '../libs/utils';
 import {
   RegisterNewUserDto,
   SendEmailVerificationCodeDto,
+  UserResDto,
   VerifyByCodeDto,
 } from './user.dto';
 import { exceptionMessages } from '../libs/messages';
@@ -94,7 +95,7 @@ describe('UserController', () => {
   });
 
   it('should returns user info', async () => {
-    const userInfo: User = await controller.getUserInformation(req);
+    const userInfo: UserResDto = await controller.getUserInformation(req);
     expect(userInfo).toMatchObject({
       username: newUser.username,
       password: expect.any(String),
@@ -131,7 +132,7 @@ describe('UserController', () => {
     await removeDuplicatedUser();
     await controller.sendEmailVerificationCode(sendEmailVerificationBody, req);
 
-    const user: User = await controller.verifyEmailByCode(
+    const user: UserResDto = await controller.verifyEmailByCode(
       verificationCodeBody,
       req,
     );
