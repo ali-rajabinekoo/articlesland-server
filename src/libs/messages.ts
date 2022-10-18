@@ -38,6 +38,7 @@ export const validationMessages = {
     repeatPassword: 'رمز عبور و تکرار آن با هم برار نیستند',
     reportType: 'نوع گزارش انتخاب شده نامعتیر است',
     reportContentType: 'نوع گزارش انتخاب شده برای محتوای مورد نظر نامعتیر است',
+    statusFilter: 'وضعیت گزارش انتخاب شده نامعتیر است',
   },
   selecting: (name: string) => `انتخاب ${name} الزامیست`,
 };

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ClassSerializerInterceptor,
   Controller,
   Delete,
@@ -14,12 +15,12 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UserService } from '../user.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { User } from '../user.entity';
-import { exceptionMessages } from '../../libs/messages';
+import { exceptionMessages, validationMessages } from '../../libs/messages';
 import utils from '../../libs/utils';
 import { UserResDtoForAdmin } from '../user.dto';
 import { getUsersLimit } from '../../libs/config';
 import { AdminService } from './admin.service';
-import { Not } from 'typeorm';
+import { ILike, Not } from 'typeorm';
 
 @Controller('admin')
 @ApiTags('admin')
@@ -39,21 +40,31 @@ export class AdminController {
   })
   async getAllUsers(
     @Query('keyword') keyword?: string | undefined,
+    @Query('status') status?: string | undefined,
     @Query('page') page?: number | undefined,
   ): Promise<{
     users: UserResDtoForAdmin[];
     total: number;
     totalPages: number;
   }> {
-    const [users, total] = await this.userService.findUsers(
+    if (!!status && status !== 'blocked' && status !== 'notBlocked') {
+      throw new BadRequestException(validationMessages.invalid.statusFilter);
+    }
+    const [_users, total] = await this.userService.findUsers(
       keyword,
       isNaN(Number(page)) ? 1 : Number(page),
       { role: Not('admin') },
+      [
+        { phoneNumber: ILike(`%${keyword}%`) },
+        { email: ILike(`%${keyword}%`) },
+      ],
     );
+    const users: UserResDtoForAdmin[] = (await this.adminService.syncIsBlocked(
+      _users,
+      !!status ? status === 'blocked' : undefined,
+    )) as UserResDtoForAdmin[];
     return {
-      users: (await this.adminService.syncIsBlocked(
-        users,
-      )) as UserResDtoForAdmin[],
+      users,
       total,
       totalPages: Math.ceil(total / getUsersLimit),
     };
