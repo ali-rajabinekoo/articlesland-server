@@ -120,6 +120,7 @@ export class UserService {
     keyword?: string | undefined,
     page?: number | undefined,
     moreWhere?: FindOptionsWhere<User>,
+    moreSearchableWheres?: FindOptionsWhere<User>[],
   ): Promise<[User[], number]> {
     const wheres: FindOptionsWhere<User>[] = [];
     const findQuery: FindManyOptions = {
@@ -131,9 +132,17 @@ export class UserService {
       wheres[0] = { username: ILike(`%${keyword}%`) };
       wheres[1] = { displayName: ILike(`%${keyword}%`) };
     }
+    if (moreSearchableWheres instanceof Array) {
+      let index = 2;
+      for (const where of moreSearchableWheres) {
+        wheres[index] = where;
+        index++;
+      }
+    }
     if (!!moreWhere) {
-      wheres[0] = !!wheres[0] ? { ...wheres[0], ...moreWhere } : moreWhere;
-      wheres[1] = !!wheres[1] ? { ...wheres[1], ...moreWhere } : moreWhere;
+      for (let i = 0; i < wheres.length; i++) {
+        wheres[i] = !!wheres[i] ? { ...wheres[i], ...moreWhere } : moreWhere;
+      }
     }
     if (wheres.length !== 0) {
       findQuery.where = wheres;
