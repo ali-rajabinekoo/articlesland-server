@@ -28,15 +28,27 @@ export class AdminService {
 
   syncIsBlocked = async (
     data: User | User[],
+    isBlocked?: boolean,
   ): Promise<UserResDtoForAdmin | UserResDtoForAdmin[]> => {
     if (data instanceof Array) {
       return Promise.all(
-        data.map(
-          async (el) =>
-            new UserResDtoForAdmin(el, {
-              isBlocked: await utils.admin.checkIsBlocked(el.id),
+        (
+          await Promise.all(
+            data.map(async (el: User) => {
+              if (isBlocked === undefined) return el;
+              const fetchedIsBlocked: boolean =
+                await utils.admin.checkIsBlocked(el.id);
+              return fetchedIsBlocked === isBlocked ? el : null;
             }),
-        ),
+          )
+        )
+          .filter((el) => Boolean(el))
+          .map(
+            async (el: User) =>
+              new UserResDtoForAdmin(el, {
+                isBlocked: await utils.admin.checkIsBlocked(el.id),
+              }),
+          ),
       );
     }
     return new UserResDtoForAdmin(data, {
