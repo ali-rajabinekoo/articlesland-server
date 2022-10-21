@@ -30,7 +30,10 @@ export class Notification {
   created_at: Date;
 
   @ApiProperty({ type: Article, required: false })
-  @ManyToOne(() => Article, (article) => article.id)
+  @ManyToOne(() => Article, (article) => article.id, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  })
   article?: Relation<Article>;
 
   @ApiProperty({ type: User })

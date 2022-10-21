@@ -102,7 +102,6 @@ export class ReportService {
     } else if (Object.keys(baseWhere).length !== 0) {
       findQuery.where = baseWhere;
     }
-    console.log(findQuery);
     return this.reportRepository.findAndCount(findQuery);
   }
 

@@ -21,7 +21,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --runInBand --config ./test/jest-e2e.json",
     "compodoc": "npx @compodoc/compodoc -r 8081 -p tsconfig.json -s"
-},
+  },
   "dependencies": {
     "@keyv/mysql": "^1.3.1",
     "@nestjs/common": "^9.0.11",
@@ -55,7 +55,8 @@
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
     "typeorm": "^0.3.7",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "winston": "^3.8.2"
   },
   "devDependencies": {
     "@compodoc/compodoc": "^1.1.19",

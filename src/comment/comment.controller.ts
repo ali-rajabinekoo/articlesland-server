@@ -130,7 +130,7 @@ export class CommentController {
     if (!comment || comment?.article?.id !== articleId) {
       throw new NotFoundException(exceptionMessages.notFound.comment);
     }
-    if (comment?.owner?.id !== req.user.id) {
+    if (comment?.owner?.id !== req.user.id && req.user.role !== 'admin') {
       throw new ForbiddenException(exceptionMessages.permission.main);
     }
     const parentComment: Comment = { ...comment.parent };
