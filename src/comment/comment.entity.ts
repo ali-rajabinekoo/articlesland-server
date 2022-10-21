@@ -75,7 +75,10 @@ export class Comment {
   })
   children: Relation<Comment[]>;
 
-  @ManyToOne(() => Article, (article) => article.id)
+  @ManyToOne(() => Article, (article) => article.id, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   @JoinColumn()
   @ApiProperty({ type: Article })
   article: Relation<Article>;

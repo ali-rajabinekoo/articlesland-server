@@ -25,6 +25,19 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## Documentations
+
+APIs Documentations:
+http://localhost:8080/swagger
+
+Code Documentations:
+
+```bash
+$ npm run compodoc
+```
+then you can see documentations at: http://localhost:8081
+
+
 ## Test
 
 ```bash

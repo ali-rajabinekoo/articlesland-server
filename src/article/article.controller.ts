@@ -413,7 +413,7 @@ export class ArticleController {
     if (!article) {
       throw new NotFoundException(exceptionMessages.notFound.article);
     }
-    if (article.owner.id !== req.user.id) {
+    if (article.owner.id !== req.user.id && req.user.role !== 'admin') {
       throw new ForbiddenException(exceptionMessages.permission.main);
     }
     await this.articleService.removeArticle(article);

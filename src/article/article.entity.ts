@@ -97,9 +97,6 @@ export class Article {
   likes: Relation<User[]>;
 
   @ApiProperty({ type: [Comment] })
-  @OneToMany(() => Comment, (comment) => comment.article, {
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  })
+  @OneToMany(() => Comment, (comment) => comment.article)
   comments: Relation<Comment[]>;
 }

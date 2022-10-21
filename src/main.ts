@@ -3,9 +3,12 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { clearingKeyValueDatabaseScheduler } from './libs/cronjob';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { Logger } from './libs/logger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: new Logger(),
+  });
 
   app.enableCors();
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
