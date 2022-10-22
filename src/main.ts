@@ -22,6 +22,7 @@ async function bootstrap() {
     .addTag('user')
     .addTag('admin')
     .addTag('article')
+    .addTag('link')
     .addTag('category')
     .addTag('comment')
     .addTag('report')

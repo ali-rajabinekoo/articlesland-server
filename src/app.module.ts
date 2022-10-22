@@ -17,6 +17,7 @@ import { join } from 'path';
 import { DraftModule } from './draft/draft.module';
 import { NotificationModule } from './notification/notification.module';
 import { Notification } from './notification/notification.entity';
+import { LinkModule } from './link/link.module';
 
 export const AppModuleMetadata = {
   imports: [
@@ -43,6 +44,7 @@ export const AppModuleMetadata = {
     ReportModule,
     DraftModule,
     NotificationModule,
+    LinkModule,
   ],
 };
 
