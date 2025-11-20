@@ -30,7 +30,7 @@
     "@nestjs/microservices": "^9.0.11",
     "@nestjs/passport": "^9.0.0",
     "@nestjs/platform-express": "^9.0.11",
-    "@nestjs/swagger": "^6.0.5",
+    "@nestjs/swagger": "^11.2.2",
     "@nestjs/typeorm": "^9.0.1",
     "@types/cron": "^2.0.0",
     "@types/html-to-text": "^8.1.1",
